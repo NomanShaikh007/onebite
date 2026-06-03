@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>One Bite — Online Orders</title>
+    <style>
+      :root {
+        --bg: #0b0c10;
+        --card: #12141b;
+        --card2: #161a24;
+        --text: #eef2ff;
+        --muted: rgba(238, 242, 255, 0.72);
+        --line: rgba(238, 242, 255, 0.12);
+        --brand: #ff4d4d;
+        --brand2: #ffb84d;
+        --ok: #3ddc97;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Arial,
+          "Noto Sans",
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
+        color: var(--text);
+        background:
+          radial-gradient(900px 600px at 85% 0%, rgba(255, 77, 77, 0.22), transparent 60%),
+          radial-gradient(800px 520px at 15% 10%, rgba(255, 184, 77, 0.18), transparent 55%),
+          radial-gradient(700px 520px at 40% 100%, rgba(61, 220, 151, 0.12), transparent 55%),
+          var(--bg);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .app {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 18px 14px 36px;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 14px 0 16px;
+        backdrop-filter: blur(10px);
+        background: linear-gradient(to bottom, rgba(11, 12, 16, 0.92), rgba(11, 12, 16, 0.5) 75%, transparent);
+      }
+
+      .headerInner {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+      }
+
+      .brandCenter {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        width: 100%;
+        padding: 0 52px;
+      }
+
+      .welcomeTag {
+        font-size: clamp(13px, 3.2vw, 16px);
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        line-height: 1.2;
+      }
+
+      .restaurantName {
+        margin: 0;
+        font-size: clamp(34px, 10vw, 52px);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.05;
+        text-transform: uppercase;
+        background: linear-gradient(92deg, #fff 0%, #ffe8c8 40%, var(--brand2) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .devline {
+        margin-top: 6px;
+        font-size: 11px;
+        font-weight: 400;
+        color: rgba(238, 242, 255, 0.5);
+        line-height: 1.2;
+      }
+
+      .homeBtn {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+      }
+
+      .homeBtn:hover {
+        transform: translateY(-50%);
+        border-color: rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .homeBtn:active {
+        transform: translateY(-50%);
+      }
+
+      .brand strong {
+        letter-spacing: 0.2px;
+        font-size: 16px;
+        line-height: 1.2;
+      }
+
+      .brand span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        background: rgba(18, 20, 27, 0.7);
+        border-radius: 999px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 120ms ease, border-color 120ms ease;
+      }
+
+      .pill:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .pill:active {
+        transform: translateY(0);
+      }
+
+      .pill svg {
+        width: 16px;
+        height: 16px;
+        opacity: 0.9;
+      }
+
+      .screenTitle {
+        margin: 16px 0 6px;
+        font-size: 18px;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .slider {
+        display: grid;
+        grid-auto-flow: row;
+        grid-auto-rows: max-content;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 2px 2px 12px;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        max-height: min(72vh, 720px);
+        padding-right: 6px;
+        justify-items: center;
+      }
+
+      .slider::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .slider::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+      }
+
+      @media (min-width: 820px) {
+        .slider {
+          max-height: min(74vh, 820px);
+        }
+      }
+
+      /* Horizontal slider (for products inside a category) */
+      .hSlider {
+        grid-auto-flow: column;
+        grid-auto-columns: min(520px, 86vw);
+        grid-template-columns: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        justify-items: stretch;
+        max-height: none;
+        padding-right: 2px;
+        padding-bottom: 14px;
+      }
+
+      .hSlider::-webkit-scrollbar {
+        width: auto;
+        height: 10px;
+      }
+
+      .card {
+        scroll-snap-align: start;
+        background: linear-gradient(180deg, rgba(18, 20, 27, 0.94), rgba(18, 20, 27, 0.68));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .cardBody {
+        padding: 14px 14px 12px;
+      }
+
+      .cardTitleRow {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .cardTitle {
+        font-size: 16px;
+        font-weight: 750;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+      }
+
+      .cardDesc {
+        margin: 8px 0 12px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .cardActions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+        font-weight: 650;
+        font-size: 13px;
+        flex: 1;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btnPrimary {
+        border-color: rgba(255, 77, 77, 0.35);
+        background: linear-gradient(180deg, rgba(255, 77, 77, 0.95), rgba(255, 77, 77, 0.78));
+        color: #160a0a;
+      }
+
+      .btnPrimary:hover {
+        background: linear-gradient(180deg, rgba(255, 77, 77, 1), rgba(255, 77, 77, 0.86));
+      }
+
+      .heroArt {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #161a24;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .heroArt img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .heroArt svg {
+        width: min(220px, 70%);
+        opacity: 0.92;
+        filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.38));
+      }
+
+      /* Smaller cards for the Home "Categories" list */
+      .categoryCard {
+        width: min(520px, 92%);
+        justify-self: center;
+      }
+
+      .categoryCard .heroArt {
+        aspect-ratio: 16 / 5.1;
+        display: block;
+        position: relative;
+      }
+
+      .categoryCard .heroArt svg {
+        width: min(140px, 52%);
+      }
+
+      .categoryCard .heroArt img,
+      .productCard .heroArt img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        inset: 0;
+      }
+
+      .productCard .heroArt {
+        display: block;
+        position: relative;
+      }
+
+      .categoryCard .cardBody {
+        padding: 9px 10px 8px;
+      }
+
+      .categoryCard .cardTitle {
+        font-size: 14px;
+      }
+
+      .categoryCard .cardDesc {
+        margin: 6px 0 6px;
+        font-size: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .categoryCard .btn {
+        padding: 7px 10px;
+        font-size: 12px;
+      }
+
+      .categoryCard .chip {
+        padding: 5px 9px;
+        font-size: 11px;
+      }
+
+      .categoryCard .cardActions {
+        gap: 8px;
+      }
+
+      /* Product cards: taller image area so every item photo is clear */
+      .productCard .heroArt {
+        aspect-ratio: 4 / 3;
+        min-height: 168px;
+        display: block;
+        position: relative;
+      }
+
+      .productCard .heroArt svg {
+        width: min(140px, 52%);
+        margin: auto;
+        display: block;
+      }
+
+      .productCard .cardBody {
+        padding: 9px 10px 10px;
+      }
+
+      .productCard .cardTitle {
+        font-size: 14px;
+      }
+
+      .productCard .cardDesc {
+        margin: 6px 0 8px;
+        font-size: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      @media (min-width: 820px) {
+        .grid {
+          grid-template-columns: 1.2fr 0.8fr;
+          align-items: start;
+        }
+      }
+
+      .detail {
+        background: linear-gradient(180deg, rgba(18, 20, 27, 0.94), rgba(18, 20, 27, 0.68));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .detailBody {
+        padding: 14px 14px 16px;
+      }
+
+      .priceRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .price {
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+      }
+
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .modalOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.52);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 14px;
+        z-index: 999;
+      }
+
+      .modalOverlay.open {
+        display: flex;
+      }
+
+      .modal {
+        width: min(560px, 100%);
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(18, 20, 27, 0.98);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
+        overflow: hidden;
+      }
+
+      .modalHeader {
+        padding: 14px 14px 10px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .modalHeader strong {
+        display: block;
+        font-size: 15px;
+        letter-spacing: 0.2px;
+      }
+
+      .modalHeader span {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .iconBtn {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.06);
+        cursor: pointer;
+      }
+
+      .modalBody {
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        outline: none;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 78px;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: rgba(255, 77, 77, 0.55);
+        box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.16);
+      }
+
+      .formRow {
+        display: grid;
+        gap: 10px;
+      }
+
+      @media (min-width: 520px) {
+        .formRow {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        background: rgba(18, 20, 27, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 10px 12px;
+        color: var(--text);
+        display: none;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        max-width: calc(100% - 24px);
+      }
+
+      .toast.open {
+        display: inline-flex;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--ok);
+      }
+
+      .mutedBox {
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: var(--radius);
+        padding: 14px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="headerInner">
+          <div class="brandCenter">
+            <span class="welcomeTag">Welcome to</span>
+            <h1 class="restaurantName">One Bite</h1>
+            <div class="devline">Developed by Noman Shaikh</div>
+          </div>
+
+          <a class="pill homeBtn" href="#/">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Home
+          </a>
+        </div>
+      </header>
+
+      <main id="root"></main>
+    </div>
+
+    <div class="modalOverlay" id="orderModal" role="dialog" aria-modal="true" aria-label="Order">
+      <div class="modal">
+        <div class="modalHeader">
+          <div>
+            <strong id="orderTitle">Order</strong>
+            <span id="orderSubtitle">Fill details to place order</span>
+          </div>
+          <button class="iconBtn" id="closeModalBtn" type="button" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M18 6L6 18M6 6l12 12"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <form class="modalBody" id="orderForm">
+          <div class="formRow">
+            <label>
+              Your name
+              <input required name="name" autocomplete="name" placeholder="e.g. Ali" />
+            </label>
+            <label>
+              Phone
+              <input required name="phone" autocomplete="tel" placeholder="e.g. 03xx-xxxxxxx" />
+            </label>
+          </div>
+
+          <div class="formRow">
+            <label>
+              Quantity
+              <select required name="qty">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Payment
+              <select required name="payment">
+                <option value="Cash on delivery">Cash on delivery</option>
+                <option value="Pickup">Pickup</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Address / Notes
+            <textarea name="address" autocomplete="street-address" placeholder="Street, area, landmark..."></textarea>
+          </label>
+
+          <button class="btn btnPrimary" type="submit">Confirm Order</button>
+          <div class="small" id="orderFinePrint">
+            This demo saves orders locally (no server yet).
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <div class="dot"></div>
+      <div id="toastText">Saved.</div>
+    </div>
+
+    <script>
+      const money = (n) => `Rs ${Number(n).toLocaleString("en-PK")}`;
+
+      const img = (id) =>
+        `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=640&h=400&q=80`;
+
+      const wiki = (path, name, w = 640) =>
+        `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}/${w}px-${name}`;
+
+      // Pizza photos (your links)
+      const PIZZA = {
+        p1: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=640&h=400&q=80",
+        p2: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=640&h=400&q=80",
+        p3: "https://images.unsplash.com/photo-1548365328-9f547fb0953b?auto=format&fit=crop&w=640&h=400&q=80",
+        p4: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=640&h=400&q=80",
+        p5: "https://images.unsplash.com/photo-1511689660979-10d2b1aada49?auto=format&fit=crop&w=640&h=400&q=80",
+        p6: "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
+        p7: "https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
+        p8: "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
+        p9: "https://images.pexels.com/photos/4109084/pexels-photo-4109084.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
+      };
+
+      // Pakistani food photos (rolls + tikka)
+      const PK = {
+        rollCat: "https://spicecravings.com/wp-content/uploads/2020/12/Paneer-kathi-Roll-Featured-1.jpg",
+        chickenRoll: wiki("8/8b", "Lachha_Paratha_and_Chilly_Chicken.jpg"),
+        zingerRoll: img("1762631383612-ee9366e58431"),
+        tikkaRoll: img("1652545296821-09a023a9fd08"),
+        malaiRoll: img("1603360946342-6106ebf49c20"),
+        seekhRoll: wiki("9/9d", "Seekh_Kabab.JPG"),
+        tikkaCat: img("1652545296821-09a023a9fd08"),
+        tikkaLeg: img("1652545296821-09a023a9fd08"),
+        tikkaChest: wiki("2/23", "Chicken_tikka.jpg"),
+        tikkaBoti: img("1529046422615-0594b30a4d2c"),
+        tikkaMalai: img("1603360946342-6106ebf49c20"),
+      };
+
+      const DB = {
+        categories: [
+          {
+            id: "pizza",
+            name: "Pizza",
+            short: "Cheesy, hot, fresh",
+            icon: "🍕",
+            image: PIZZA.p1,
+            items: [
+              { id: "pepperoni", name: "Pepperoni Pizza", price: 1499, desc: "Pepperoni, mozzarella, pizza sauce.", tags: ["Best seller"], image: PIZZA.p2 },
+              { id: "fajita", name: "Fajita Pizza", price: 1399, desc: "Fajita chicken, onions, capsicum, olives.", tags: ["Spicy"], image: PIZZA.p3 },
+              { id: "bbq", name: "BBQ Chicken Pizza", price: 1449, desc: "Smoky BBQ chicken, mozzarella, sauce.", tags: ["Smoky"], image: PIZZA.p4 },
+              { id: "tikka", name: "Chicken Tikka Pizza", price: 1450, desc: "Tikka chunks, onions, mozzarella.", tags: ["Desi"], image: PIZZA.p5 },
+              { id: "veggie", name: "Veggie Pizza", price: 1299, desc: "Mushroom, olives, capsicum, onion.", tags: ["Veg"], image: PIZZA.p6 },
+              { id: "supreme", name: "Supreme Pizza", price: 1599, desc: "Chicken, beef, veggies, extra cheese.", tags: ["Loaded"], image: PIZZA.p7 },
+              { id: "cheese", name: "Cheese Lovers", price: 1349, desc: "Extra mozzarella blend, creamy bite.", tags: ["Cheesy"], image: PIZZA.p8 },
+              { id: "margherita", name: "Margherita", price: 1249, desc: "Classic tomato + mozzarella + basil vibe.", tags: ["Classic"], image: PIZZA.p9 },
+              { id: "hawaiian", name: "Hawaiian", price: 1499, desc: "Chicken and pineapple sweet-salty.", tags: ["Sweet"], image: PIZZA.p1 },
+              { id: "peri", name: "Peri Peri Pizza", price: 1499, desc: "Peri peri chicken + tangy sauce.", tags: ["Hot"], image: PIZZA.p2 },
+            ],
+          },
+          {
+            id: "burger",
+            name: "Burger",
+            short: "Juicy & crispy",
+            icon: "🍔",
+            image: img("1568901346375-23c9450c58cd"),
+            items: [
+              { id: "zinger", name: "Zinger Burger", price: 549, desc: "Crispy chicken, lettuce, mayo.", tags: ["Crispy"], image: img("1606755969113-40ccea095b34") },
+              { id: "beef", name: "Beef Burger", price: 699, desc: "Beef patty, cheese, pickles, sauce.", tags: ["Classic"], image: img("1553979458-d2229f743f32") },
+              { id: "double", name: "Double Patty", price: 899, desc: "2 patties, cheese, signature sauce.", tags: ["Big"], image: img("1550547604-928a85ef9a0e") },
+              { id: "chicken", name: "Grilled Chicken", price: 649, desc: "Grilled chicken, fresh veggies.", tags: ["Grilled"], image: img("1586196001107-2f54248e41ff") },
+              { id: "spicy", name: "Spicy Burger", price: 599, desc: "Spicy sauce, jalapeños, crispy chicken.", tags: ["Hot"], image: img("1520071130931-fdb466ede54e") },
+              { id: "bbqburger", name: "BBQ Burger", price: 649, desc: "BBQ sauce, onions, cheese.", tags: ["Smoky"], image: img("1572802415724-292f09f26b1e") },
+            ],
+          },
+          {
+            id: "roll",
+            name: "Roll",
+            short: "Pakistani paratha rolls",
+            icon: "🌯",
+            image: PK.rollCat,
+            items: [
+              { id: "chickenroll", name: "Chicken Roll", price: 299, desc: "Chicken, onions, sauces, paratha.", tags: ["Fast"], image: PK.rollCat },
+              { id: "zingerroll", name: "Zinger Roll", price: 399, desc: "Crispy zinger, lettuce, mayo.", tags: ["Crispy"], image: PK.zingerRoll },
+              { id: "tikkaroll", name: "Tikka Roll", price: 329, desc: "Chicken tikka, mint sauce, onions.", tags: ["Desi"], image: PK.tikkaRoll },
+              { id: "malai", name: "Malai Boti Roll", price: 369, desc: "Creamy malai boti with sauce.", tags: ["Creamy"], image: PK.malaiRoll },
+              { id: "seekh", name: "Seekh Kebab Roll", price: 349, desc: "Seekh kebab, onions, chutney.", tags: ["Kebab"], image: PK.seekhRoll },
+            ],
+          },
+          {
+            id: "tikka",
+            name: "Tikka",
+            short: "Pakistani charcoal tikka",
+            icon: "🍗",
+            image: PK.tikkaCat,
+            items: [
+              { id: "leg", name: "Chicken Leg Tikka", price: 449, desc: "1 pc leg, charcoal grilled, masala.", tags: ["Grill"], image: PK.tikkaLeg },
+              { id: "chest", name: "Chicken Chest Tikka", price: 499, desc: "1 pc chest, juicy and spicy.", tags: ["Juicy"], image: PK.tikkaChest },
+              { id: "boti", name: "Chicken Boti", price: 549, desc: "Tender boti cubes with smoky flavor.", tags: ["Smoky"], image: PK.tikkaBoti },
+              { id: "malaiTikka", name: "Malai Tikka", price: 569, desc: "Creamy malai marinade, mild spice.", tags: ["Mild"], image: PK.tikkaMalai },
+            ],
+          },
+        ],
+      };
+
+      const findCategory = (catId) => DB.categories.find((c) => c.id === catId);
+      const findItem = (catId, itemId) => {
+        const c = findCategory(catId);
+        return c?.items?.find((i) => i.id === itemId);
+      };
+
+      const iconSVG = (emoji) => {
+        const label = String(emoji || "").trim() || "🍽️";
+        return `
+          <svg viewBox="0 0 320 220" role="img" aria-label="${label}">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="rgba(255,77,77,0.95)" />
+                <stop offset="55%" stop-color="rgba(255,184,77,0.88)" />
+                <stop offset="100%" stop-color="rgba(61,220,151,0.72)" />
+              </linearGradient>
+            </defs>
+            <rect x="22" y="22" width="276" height="176" rx="32" fill="url(#g)" opacity="0.95"></rect>
+            <text x="160" y="132" text-anchor="middle" font-size="84" font-family="system-ui,Segoe UI,Arial">${label}</text>
+          </svg>`;
+      };
+
+      const foodImg = (src, alt, fallbackEmoji, fallbackSrc) => {
+        const url = src || fallbackSrc;
+        if (!url) return iconSVG(fallbackEmoji);
+        const safeAlt = String(alt || "Food").replace(/"/g, "&quot;");
+        const safeFallback = fallbackSrc ? String(fallbackSrc).replace(/"/g, "&quot;") : "";
+        return `<img src="${url}" alt="${safeAlt}" loading="lazy" decoding="async" referrerpolicy="no-referrer"${
+          safeFallback ? ` data-fallback="${safeFallback}" onerror="if(this.dataset.fallback&&!this.dataset.tried){this.dataset.tried=1;this.src=this.dataset.fallback}"` : ""
+        } />`;
+      };
+
+      const el = (html) => {
+        const t = document.createElement("template");
+        t.innerHTML = html.trim();
+        return t.content.firstElementChild;
+      };
+
+      const toast = (msg) => {
+        const t = document.getElementById("toast");
+        const txt = document.getElementById("toastText");
+        txt.textContent = msg;
+        t.classList.add("open");
+        window.clearTimeout(toast._timer);
+        toast._timer = window.setTimeout(() => t.classList.remove("open"), 2600);
+      };
+
+      const setHeader = ({ title, subtitle }) => {
+        const t = document.getElementById("headerTitle");
+        const s = document.getElementById("headerSubtitle");
+        if (t) t.textContent = title;
+        if (s) s.textContent = subtitle;
+      };
+
+      const routes = {
+        home() {
+          setHeader({ title: "Fast Food Orders", subtitle: "Swipe categories, then tap to view items." });
+          const root = document.getElementById("root");
+          root.innerHTML = "";
+
+          const header = el(`
+            <section>
+              <h2 class="screenTitle">Categories</h2>
+              <p class="subtitle">Choose a category (Pizza, Burger, Roll, Tikka).</p>
+            </section>
+          `);
+
+          const slider = el(`<section class="slider" aria-label="Categories slider"></section>`);
+          for (const c of DB.categories) {
+            const card = el(`
+              <a class="card categoryCard" href="#/c/${encodeURIComponent(c.id)}">
+                <div class="heroArt">${foodImg(c.image, c.name, c.icon)}</div>
+                <div class="cardBody">
+                  <div class="cardTitleRow">
+                    <h3 class="cardTitle">${c.name}</h3>
+                    <span class="chip">${c.items.length} items</span>
+                  </div>
+                  <p class="cardDesc">${c.short}</p>
+                  <div class="cardActions">
+                    <span class="btn btnPrimary">Open</span>
+                    <span class="btn">Swipe →</span>
+                  </div>
+                </div>
+              </a>
+            `);
+            slider.appendChild(card);
+          }
+
+          root.appendChild(header);
+          root.appendChild(slider);
+        },
+
+        category(catId) {
+          const c = findCategory(catId);
+          if (!c) return routes.notFound();
+
+          setHeader({ title: c.name, subtitle: "Swipe items, tap any item for details." });
+          const root = document.getElementById("root");
+          root.innerHTML = "";
+
+          const header = el(`
+            <section>
+              <h2 class="screenTitle">${c.name} menu</h2>
+              <p class="subtitle">${c.items.length} items available. Swipe left/right.</p>
+            </section>
+          `);
+
+          const slider = el(`<section class="slider hSlider" aria-label="${c.name} items slider"></section>`);
+          for (const item of c.items) {
+            const tag = (item.tags && item.tags[0]) ? `<span class="chip">${item.tags[0]}</span>` : `<span class="chip">Fresh</span>`;
+            const card = el(`
+              <a class="card productCard" href="#/c/${encodeURIComponent(c.id)}/i/${encodeURIComponent(item.id)}">
+                <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
+                <div class="cardBody">
+                  <div class="cardTitleRow">
+                    <h3 class="cardTitle">${item.name}</h3>
+                    ${tag}
+                  </div>
+                  <p class="cardDesc">${item.desc}</p>
+                  <div class="priceRow">
+                    <div class="price">${money(item.price)}</div>
+                    <span class="btn btnPrimary">View</span>
+                  </div>
+                </div>
+              </a>
+            `);
+            slider.appendChild(card);
+          }
+
+          root.appendChild(header);
+          root.appendChild(slider);
+        },
+
+        item(catId, itemId) {
+          const c = findCategory(catId);
+          const item = findItem(catId, itemId);
+          if (!c || !item) return routes.notFound();
+
+          setHeader({ title: item.name, subtitle: `${c.name} • ${money(item.price)}` });
+          const root = document.getElementById("root");
+          root.innerHTML = "";
+
+          const wrap = el(`<section class="grid"></section>`);
+          const left = el(`
+            <div class="detail">
+              <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
+              <div class="detailBody">
+                <div class="cardTitleRow">
+                  <h2 class="cardTitle" style="font-size:18px;margin:0">${item.name}</h2>
+                  <span class="chip">${c.name}</span>
+                </div>
+                <p class="cardDesc">${item.desc}</p>
+                <div class="priceRow">
+                  <div>
+                    <div class="price">${money(item.price)}</div>
+                    <div class="small">Estimated prep time: 15–25 mins</div>
+                  </div>
+                  <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>
+                </div>
+              </div>
+            </div>
+          `);
+
+          const right = el(`
+            <div class="mutedBox">
+              <div style="display:grid;gap:8px">
+                <div><strong style="color:var(--text)">How it works</strong></div>
+                <div>Tap <strong style="color:var(--text)">Order Now</strong>, enter name + phone + address, and the order saves as “Recent”.</div>
+                <div class="small">Next step: connect to WhatsApp / admin dashboard for real restaurant orders.</div>
+              </div>
+            </div>
+          `);
+
+          wrap.appendChild(left);
+          wrap.appendChild(right);
+          root.appendChild(wrap);
+
+          const btn = document.getElementById("orderNowBtn");
+          btn.addEventListener("click", () => openOrderModal({ catId, itemId }));
+        },
+
+        notFound() {
+          setHeader({ title: "Not found", subtitle: "This page does not exist." });
+          const root = document.getElementById("root");
+          root.innerHTML = "";
+          root.appendChild(
+            el(`
+              <section class="mutedBox">
+                Page not found. Go back to <a href="#/" style="text-decoration:underline">Home</a>.
+              </section>
+            `),
+          );
+        },
+      };
+
+      function parseRoute() {
+        const raw = (location.hash || "#/").slice(1);
+        const parts = raw.split("/").filter(Boolean).map((p) => decodeURIComponent(p));
+        // Supported:
+        // /                     -> home
+        // /c/:cat               -> category
+        // /c/:cat/i/:item       -> item
+        if (parts.length === 0) return { name: "home" };
+        if (parts[0] === "c" && parts.length === 2) return { name: "category", cat: parts[1] };
+        if (parts[0] === "c" && parts[2] === "i" && parts.length === 4) return { name: "item", cat: parts[1], item: parts[3] };
+        return { name: "notFound" };
+      }
+
+      function render() {
+        const r = parseRoute();
+        if (r.name === "home") return routes.home();
+        if (r.name === "category") return routes.category(r.cat);
+        if (r.name === "item") return routes.item(r.cat, r.item);
+        return routes.notFound();
+      }
+
+      const modal = document.getElementById("orderModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const orderForm = document.getElementById("orderForm");
+
+      let currentOrderTarget = null; // {catId, itemId}
+
+      function openOrderModal({ catId, itemId }) {
+        const c = findCategory(catId);
+        const item = findItem(catId, itemId);
+        if (!c || !item) return;
+        currentOrderTarget = { catId, itemId };
+
+        document.getElementById("orderTitle").textContent = `Order: ${item.name}`;
+        document.getElementById("orderSubtitle").textContent = `${c.name} • ${money(item.price)}`;
+
+        modal.classList.add("open");
+        const nameInput = orderForm.querySelector('input[name="name"]');
+        setTimeout(() => nameInput?.focus(), 0);
+      }
+
+      function closeOrderModal() {
+        modal.classList.remove("open");
+        currentOrderTarget = null;
+      }
+
+      closeModalBtn.addEventListener("click", closeOrderModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeOrderModal();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeOrderModal();
+      });
+
+      orderForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!currentOrderTarget) return;
+
+        const { catId, itemId } = currentOrderTarget;
+        const c = findCategory(catId);
+        const item = findItem(catId, itemId);
+        if (!c || !item) return;
+
+        const fd = new FormData(orderForm);
+        const order = {
+          id: crypto.randomUUID?.() || String(Date.now()),
+          createdAt: new Date().toISOString(),
+          customer: {
+            name: String(fd.get("name") || ""),
+            phone: String(fd.get("phone") || ""),
+            address: String(fd.get("address") || ""),
+          },
+          qty: Number(fd.get("qty") || 1),
+          payment: String(fd.get("payment") || "Cash on delivery"),
+          item: {
+            categoryId: c.id,
+            categoryName: c.name,
+            itemId: item.id,
+            itemName: item.name,
+            unitPrice: item.price,
+            total: item.price * Number(fd.get("qty") || 1),
+          },
+        };
+
+        const key = "ff_recent_order";
+        localStorage.setItem(key, JSON.stringify(order));
+
+        orderForm.reset();
+        closeOrderModal();
+        toast(`Order saved: ${order.item.itemName} • ${money(order.item.total)}`);
+      });
+
+      window.addEventListener("hashchange", render);
+      render();
+    </script>
+  </body>
+</html>
