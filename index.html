@@ -635,6 +635,66 @@
         font-size: 13px;
         line-height: 1.45;
       }
+
+      /* Pizza size selector */
+      .sizeSelector {
+        margin-top: 12px;
+      }
+
+      .sizeLabel {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .sizeBtns {
+        display: flex;
+        gap: 8px;
+      }
+
+      .sizeBtn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 9px 6px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+      }
+
+      .sizeBtn:hover {
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .sizeBtn.active {
+        border-color: var(--brand);
+        background: rgba(255, 77, 77, 0.14);
+      }
+
+      .sizeName {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .sizeInch {
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .sizePrice {
+        font-size: 11px;
+        color: var(--brand2);
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -974,11 +1034,39 @@
           const item = findItem(catId, itemId);
           if (!c || !item) return routes.notFound();
 
-          setHeader({ title: item.name, subtitle: `${c.name} • ${money(item.price)}` });
+          const isPizza = catId === "pizza";
+          const SIZES = [
+            { id: "small",  label: "Small",  inch: '7"',  mult: 0.80 },
+            { id: "medium", label: "Medium", inch: '10"', mult: 1.00 },
+            { id: "large",  label: "Large",  inch: '14"', mult: 1.28 },
+          ];
+          let selectedSize = "medium";
+          const basePrice = item.price;
+          const getPrice = () => isPizza
+            ? Math.round(basePrice * SIZES.find(s => s.id === selectedSize).mult)
+            : basePrice;
+
+          setHeader({ title: item.name, subtitle: `${c.name} • ${money(getPrice())}` });
           const root = document.getElementById("root");
           root.innerHTML = "";
 
           const wrap = el(`<section class="grid"></section>`);
+
+          const sizeSelectorHTML = isPizza ? `
+            <div class="sizeSelector">
+              <span class="sizeLabel">Size</span>
+              <div class="sizeBtns">
+                ${SIZES.map(s => `
+                  <button class="sizeBtn${s.id === selectedSize ? ' active' : ''}" data-size="${s.id}" type="button">
+                    <span class="sizeName">${s.label}</span>
+                    <span class="sizeInch">${s.inch}</span>
+                    <span class="sizePrice">${money(Math.round(basePrice * s.mult))}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          ` : '';
+
           const left = el(`
             <div class="detail">
               <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
@@ -988,9 +1076,10 @@
                   <span class="chip">${c.name}</span>
                 </div>
                 <p class="cardDesc">${item.desc}</p>
+                ${sizeSelectorHTML}
                 <div class="priceRow">
                   <div>
-                    <div class="price">${money(item.price)}</div>
+                    <div class="price" id="detailPrice">${money(getPrice())}</div>
                     <div class="small">Estimated prep time: 15–25 mins</div>
                   </div>
                   <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>
@@ -1013,8 +1102,25 @@
           wrap.appendChild(right);
           root.appendChild(wrap);
 
-          const btn = document.getElementById("orderNowBtn");
-          btn.addEventListener("click", () => openOrderModal({ catId, itemId }));
+          if (isPizza) {
+            left.querySelectorAll('.sizeBtn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                selectedSize = btn.dataset.size;
+                left.querySelectorAll('.sizeBtn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const newPrice = getPrice();
+                document.getElementById('detailPrice').textContent = money(newPrice);
+                setHeader({ title: item.name, subtitle: `${c.name} • ${money(newPrice)}` });
+              });
+            });
+          }
+
+          const orderBtn = document.getElementById("orderNowBtn");
+          orderBtn.addEventListener("click", () => openOrderModal({
+            catId, itemId,
+            size: isPizza ? selectedSize : null,
+            finalPrice: getPrice(),
+          }));
         },
 
         notFound() {
@@ -1056,16 +1162,17 @@
       const closeModalBtn = document.getElementById("closeModalBtn");
       const orderForm = document.getElementById("orderForm");
 
-      let currentOrderTarget = null; // {catId, itemId}
+      let currentOrderTarget = null; // {catId, itemId, size, finalPrice}
 
-      function openOrderModal({ catId, itemId }) {
+      function openOrderModal({ catId, itemId, size = null, finalPrice = null }) {
         const c = findCategory(catId);
         const item = findItem(catId, itemId);
         if (!c || !item) return;
-        currentOrderTarget = { catId, itemId };
+        currentOrderTarget = { catId, itemId, size, finalPrice: finalPrice ?? item.price };
 
-        document.getElementById("orderTitle").textContent = `Order: ${item.name}`;
-        document.getElementById("orderSubtitle").textContent = `${c.name} • ${money(item.price)}`;
+        const sizeLabel = size ? ` • ${size.charAt(0).toUpperCase() + size.slice(1)}` : '';
+        document.getElementById("orderTitle").textContent = `Order: ${item.name}${sizeLabel}`;
+        document.getElementById("orderSubtitle").textContent = `${c.name} • ${money(currentOrderTarget.finalPrice)}`;
 
         modal.classList.add("open");
         const nameInput = orderForm.querySelector('input[name="name"]');
@@ -1090,12 +1197,14 @@
         e.preventDefault();
         if (!currentOrderTarget) return;
 
-        const { catId, itemId } = currentOrderTarget;
+        const { catId, itemId, size, finalPrice } = currentOrderTarget;
         const c = findCategory(catId);
         const item = findItem(catId, itemId);
         if (!c || !item) return;
 
         const fd = new FormData(orderForm);
+        const qty = Number(fd.get("qty") || 1);
+        const unitPrice = finalPrice ?? item.price;
         const order = {
           id: crypto.randomUUID?.() || String(Date.now()),
           createdAt: new Date().toISOString(),
@@ -1104,15 +1213,16 @@
             phone: String(fd.get("phone") || ""),
             address: String(fd.get("address") || ""),
           },
-          qty: Number(fd.get("qty") || 1),
+          qty,
           payment: String(fd.get("payment") || "Cash on delivery"),
           item: {
             categoryId: c.id,
             categoryName: c.name,
             itemId: item.id,
             itemName: item.name,
-            unitPrice: item.price,
-            total: item.price * Number(fd.get("qty") || 1),
+            size: size || null,
+            unitPrice,
+            total: unitPrice * qty,
           },
         };
 
