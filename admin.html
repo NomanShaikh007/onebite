@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One Bite — Admin Dashboard</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card: #12141b;
+      --card2: #161a24;
+      --text: #eef2ff;
+      --muted: rgba(238, 242, 255, 0.72);
+      --line: rgba(238, 242, 255, 0.12);
+      --brand: #ff4d4d;
+      --brand2: #ffb84d;
+      --ok: #3ddc97;
+      --radius: 18px;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 10% 20%, rgba(255, 77, 77, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(255, 184, 77, 0.06) 0%, transparent 40%),
+                  var(--bg);
+      background-attachment: fixed;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(18, 20, 27, 0.6);
+      border: 1px solid var(--line);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 { margin: 0; font-size: 24px; color: var(--text); }
+    h1 span { color: var(--brand); }
+    header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
+
+    .refresh-btn {
+      background: var(--card2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .refresh-btn:hover {
+      background: var(--line);
+      border-color: var(--brand2);
+    }
+
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .order-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .customer-name { font-weight: 700; font-size: 16px; }
+    .customer-phone { font-size: 14px; color: var(--brand2); margin-left: 8px; }
+
+    .chip {
+      background: rgba(255, 184, 77, 0.1);
+      color: var(--brand2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .order-details { font-size: 15px; margin-bottom: 12px; line-height: 1.5; }
+    .order-details strong { color: #fff; }
+
+    .order-address {
+      font-size: 13px; 
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: rgba(238, 242, 255, 0.5);
+    }
+
+    .total-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ok);
+    }
+
+    .status-msg {
+      text-align: center;
+      padding: 40px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>One Bite <span>Dashboard</span></h1>
+        <p>Live incoming restaurant orders</p>
+      </div>
+      <button class="refresh-btn" onclick="fetchOrders()">🔄 Refresh</button>
+    </header>
+
+    <div id="ordersContainer" class="orders-list">
+      <div class="status-msg">Connecting to database...</div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Paste your exact Supabase Credentials here (same as your index.html)
+    const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co"; 
+    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
+    
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Formatter for Currency
+    function money(n) {
+      return "Rs " + Number(n).toLocaleString("en-PK");
+    }
+
+    // Fetch orders from Supabase
+    async function fetchOrders() {
+      const container = document.getElementById("ordersContainer");
+      container.innerHTML = '<div class="status-msg">Fetching latest orders...</div>';
+
+      try {
+        const { data: orders, error } = await sb
+          .from("orders")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (!orders || orders.length === 0) {
+          container.innerHTML = '<div class="status-msg">🍽️ No orders placed yet!</div>';
+          return;
+        }
+
+        container.innerHTML = ""; // Clear loader
+
+        orders.forEach(order => {
+          const card = document.createElement("div");
+          card.className = "order-card";
+          
+          card.innerHTML = `
+            <div class="order-header">
+              <div>
+                <span class="customer-name">${order.customer_name || 'Anonymous'}</span>
+                <a href="tel:${order.customer_phone}" class="customer-phone">${order.customer_phone || ''}</a>
+              </div>
+              <span class="chip">${order.payment_method || 'COD'}</span>
+            </div>
+            <div class="order-details">
+              Item: <strong>${order.qty || 1}x ${order.item_name}</strong> 
+              ${order.size ? `(${order.size})` : ''}
+            </div>
+            <div class="order-address">
+              📍 <strong>Delivery Address:</strong><br>
+              ${order.customer_address || 'No address provided'}
+            </div>
+            <div class="order-footer">
+              <span>Placed: ${new Date(order.created_at).toLocaleString("en-PK")}</span>
+              <span class="total-price">${money(order.total)}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `
+          <div class="status-msg" style="border-color: var(--brand); color: var(--brand)">
+            ❌ Failed to load orders: ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    // Load instantly on page open
+    window.addEventListener("DOMContentLoaded", fetchOrders);
+  </script>
+</body>
+</html>
