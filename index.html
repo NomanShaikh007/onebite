@@ -696,6 +696,7 @@
         font-weight: 600;
       }
     </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
     <div class="app">
@@ -782,7 +783,7 @@
 
           <button class="btn btnPrimary" type="submit">Confirm Order</button>
           <div class="small" id="orderFinePrint">
-            This demo saves orders locally (no server yet).
+            Orders are saved to the restaurant database in real time.
           </div>
         </form>
       </div>
@@ -794,6 +795,11 @@
     </div>
 
     <script>
+      // ── Supabase config ──────────────────────────────────────────────────────
+      const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
       const money = (n) => `Rs ${Number(n).toLocaleString("en-PK")}`;
 
       const img = (id) =>
@@ -832,32 +838,27 @@
         tikkaMalai: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=640&h=400&q=80",
       };
 
-      const DB = {
+      // ── Fallback hardcoded DB (used if Supabase is unreachable) ──────────────
+      const FALLBACK_DB = {
         categories: [
           {
-            id: "pizza",
-            name: "Pizza",
-            short: "Cheesy, hot, fresh",
-            icon: "🍕",
+            id: "pizza", name: "Pizza", short: "Cheesy, hot, fresh", icon: "🍕",
             image: PIZZA.p1,
             items: [
               { id: "pepperoni", name: "Pepperoni Pizza", price: 1499, desc: "Pepperoni, mozzarella, pizza sauce.", tags: ["Best seller"], image: PIZZA.p2 },
               { id: "fajita", name: "Fajita Pizza", price: 1399, desc: "Fajita chicken, onions, capsicum, olives.", tags: ["Spicy"], image: PIZZA.p3 },
               { id: "bbq", name: "BBQ Chicken Pizza", price: 1449, desc: "Smoky BBQ chicken, mozzarella, sauce.", tags: ["Smoky"], image: PIZZA.p4 },
-              { id: "tikka", name: "Chicken Tikka Pizza", price: 1450, desc: "Tikka chunks, onions, mozzarella.", tags: ["Desi"], image: PIZZA.p5 },
+              { id: "tikka_pizza", name: "Chicken Tikka Pizza", price: 1450, desc: "Tikka chunks, onions, mozzarella.", tags: ["Desi"], image: PIZZA.p5 },
               { id: "veggie", name: "Veggie Pizza", price: 1299, desc: "Mushroom, olives, capsicum, onion.", tags: ["Veg"], image: PIZZA.p6 },
               { id: "supreme", name: "Supreme Pizza", price: 1599, desc: "Chicken, beef, veggies, extra cheese.", tags: ["Loaded"], image: PIZZA.p7 },
               { id: "cheese", name: "Cheese Lovers", price: 1349, desc: "Extra mozzarella blend, creamy bite.", tags: ["Cheesy"], image: PIZZA.p8 },
-              { id: "margherita", name: "Margherita", price: 1249, desc: "Classic tomato + mozzarella + basil vibe.", tags: ["Classic"], image: PIZZA.p9 },
+              { id: "margherita", name: "Margherita", price: 1249, desc: "Classic tomato, mozzarella, basil.", tags: ["Classic"], image: PIZZA.p9 },
               { id: "hawaiian", name: "Hawaiian", price: 1499, desc: "Chicken and pineapple sweet-salty.", tags: ["Sweet"], image: PIZZA.p1 },
               { id: "peri", name: "Peri Peri Pizza", price: 1499, desc: "Peri peri chicken + tangy sauce.", tags: ["Hot"], image: PIZZA.p2 },
             ],
           },
           {
-            id: "burger",
-            name: "Burger",
-            short: "Juicy & crispy",
-            icon: "🍔",
+            id: "burger", name: "Burger", short: "Juicy & crispy", icon: "🍔",
             image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=640&h=400&q=80",
             items: [
               { id: "zinger", name: "Zinger Burger", price: 549, desc: "Crispy chicken, lettuce, mayo.", tags: ["Crispy"], image: "https://images.unsplash.com/photo-1561758033-d89a9ad46330?auto=format&fit=crop&w=640&h=400&q=80" },
@@ -869,10 +870,7 @@
             ],
           },
           {
-            id: "roll",
-            name: "Roll",
-            short: "Pakistani paratha rolls",
-            icon: "🌯",
+            id: "roll", name: "Roll", short: "Pakistani paratha rolls", icon: "🌯",
             image: PK.rollCat,
             items: [
               { id: "chickenroll", name: "Chicken Roll", price: 299, desc: "Chicken, onions, sauces, paratha.", tags: ["Fast"], image: PK.chickenRoll },
@@ -883,10 +881,7 @@
             ],
           },
           {
-            id: "tikka",
-            name: "Tikka",
-            short: "Pakistani charcoal tikka",
-            icon: "🍗",
+            id: "tikka", name: "Tikka", short: "Pakistani charcoal tikka", icon: "🍗",
             image: PK.tikkaCat,
             items: [
               { id: "leg", name: "Chicken Leg Tikka", price: 449, desc: "1 pc leg, charcoal grilled, masala.", tags: ["Grill"], image: PK.tikkaLeg },
@@ -897,6 +892,49 @@
           },
         ],
       };
+
+      // ── Live DB (populated from Supabase or fallback) ─────────────────────────
+      let DB = { categories: [] };
+
+      async function loadMenuFromSupabase() {
+        try {
+          const { data: cats, error: catErr } = await sb
+            .from("categories")
+            .select("*")
+            .order("sort_order", { ascending: true });
+          if (catErr) throw catErr;
+
+          const { data: itemsData, error: itemErr } = await sb
+            .from("items")
+            .select("*")
+            .order("sort_order", { ascending: true });
+          if (itemErr) throw itemErr;
+
+          DB.categories = cats.map((c) => ({
+            id: c.id,
+            name: c.name,
+            short: c.short,
+            icon: c.icon,
+            image: c.image,
+            items: itemsData
+              .filter((i) => i.category_id === c.id)
+              .map((i) => ({
+                id: i.id,
+                name: i.name,
+                price: i.price,
+                desc: i.description,
+                tags: i.tags || [],
+                image: i.image,
+              })),
+          }));
+
+          console.log("✅ Menu loaded from Supabase:", DB.categories.length, "categories");
+        } catch (err) {
+          console.warn("⚠️ Supabase menu load failed, using fallback:", err.message);
+          DB = FALLBACK_DB;
+          toast("Offline mode — showing cached menu");
+        }
+      }
 
       const findCategory = (catId) => DB.categories.find((c) => c.id === catId);
       const findItem = (catId, itemId) => {
@@ -1195,49 +1233,81 @@
         if (e.key === "Escape") closeOrderModal();
       });
 
-      orderForm.addEventListener("submit", (e) => {
+      orderForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!currentOrderTarget) return;
+
+        const submitBtn = orderForm.querySelector('[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Placing order…";
 
         const { catId, itemId, size, finalPrice } = currentOrderTarget;
         const c = findCategory(catId);
         const item = findItem(catId, itemId);
-        if (!c || !item) return;
+        if (!c || !item) { submitBtn.disabled = false; submitBtn.textContent = "Confirm Order"; return; }
 
         const fd = new FormData(orderForm);
         const qty = Number(fd.get("qty") || 1);
         const unitPrice = finalPrice ?? item.price;
-        const order = {
-          id: crypto.randomUUID?.() || String(Date.now()),
-          createdAt: new Date().toISOString(),
-          customer: {
-            name: String(fd.get("name") || ""),
-            phone: String(fd.get("phone") || ""),
-            address: String(fd.get("address") || ""),
-          },
+
+        const orderPayload = {
+          customer_name:    String(fd.get("name") || ""),
+          customer_phone:   String(fd.get("phone") || ""),
+          customer_address: String(fd.get("address") || ""),
+          payment_method:   String(fd.get("payment") || "Cash on delivery"),
           qty,
-          payment: String(fd.get("payment") || "Cash on delivery"),
-          item: {
-            categoryId: c.id,
-            categoryName: c.name,
-            itemId: item.id,
-            itemName: item.name,
-            size: size || null,
-            unitPrice,
-            total: unitPrice * qty,
-          },
+          category_id:      c.id,
+          category_name:    c.name,
+          item_id:          item.id,
+          item_name:        item.name,
+          size:             size || null,
+          unit_price:       unitPrice,
+          total:            unitPrice * qty,
         };
 
-        const key = "ff_recent_order";
-        localStorage.setItem(key, JSON.stringify(order));
+        // Save to Supabase
+        let savedToCloud = false;
+        try {
+          const { error } = await sb.from("orders").insert([orderPayload]);
+          if (error) throw error;
+          savedToCloud = true;
+        } catch (err) {
+          console.warn("Supabase order save failed:", err.message);
+        }
 
+        // Always save locally as backup
+        localStorage.setItem("ff_recent_order", JSON.stringify({
+          ...orderPayload,
+          id: crypto.randomUUID?.() || String(Date.now()),
+          createdAt: new Date().toISOString(),
+        }));
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Confirm Order";
         orderForm.reset();
         closeOrderModal();
-        toast(`Order saved: ${order.item.itemName} • ${money(order.item.total)}`);
+
+        if (savedToCloud) {
+          toast(`✅ Order placed: ${item.name} • ${money(unitPrice * qty)}`);
+        } else {
+          toast(`⚠️ Saved locally (offline): ${item.name} • ${money(unitPrice * qty)}`);
+        }
       });
 
       window.addEventListener("hashchange", render);
-      render();
+
+      // ── Boot: load menu then render ──────────────────────────────────────────
+      (async () => {
+        // Show loading state
+        const root = document.getElementById("root");
+        root.innerHTML = `<section class="mutedBox" style="text-align:center;padding:32px 14px;">
+          <div style="font-size:28px;margin-bottom:10px">🍽️</div>
+          <div style="font-size:14px;color:var(--muted)">Loading menu…</div>
+        </section>`;
+
+        await loadMenuFromSupabase();
+        render();
+      })();
     </script>
   </body>
 </html>
