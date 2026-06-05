@@ -33,38 +33,23 @@
       padding: 20px;
     }
 
+    /* Lock Screen Overlay */
+    #lockScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 9999; display: flex; justify-content: center; align-items: center;
+    }
+    .lock-box {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 40px; text-align: center; max-width: 360px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       display: none; 
     }
 
-    /* --- PASSWORD SCREEN OVERLAY --- */
-    .lock-screen {
-      position: fixed; inset: 0; background: var(--bg);
-      display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px;
-    }
-    .lock-box {
-      background: var(--card); border: 1px solid var(--line); padding: 30px;
-      border-radius: var(--radius); width: min(380px, 100%); text-align: center;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    }
-    .lock-box h2 { margin: 0 0 8px 0; font-size: 20px; }
-    .lock-box h2 span { color: var(--brand); }
-    .lock-box p { margin: 0 0 20px 0; font-size: 13px; color: var(--muted); }
-    .lock-box input {
-      width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line);
-      background: var(--card2); color: var(--text); font-size: 15px; text-align: center;
-      outline: none; box-sizing: border-box; margin-bottom: 12px;
-    }
-    .lock-box input:focus { border-color: var(--brand2); }
-    .lock-box button {
-      width: 100%; background: linear-gradient(180deg, rgba(255, 77, 77, 0.95), rgba(255, 77, 77, 0.78));
-      color: #160a0a; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;
-    }
-    .error-text { color: var(--brand); font-size: 12px; margin-top: 10px; display: none; }
-
-    /* --- HEADER & NAVIGATION TABS --- */
     header {
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       background: rgba(18, 20, 27, 0.6); border: 1px solid var(--line);
@@ -74,21 +59,6 @@
     h1 { margin: 0; font-size: 24px; color: var(--text); }
     h1 span { color: var(--brand); }
     header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
-    .header-actions { display: flex; align-items: center; gap: 14px; }
-
-    .live-counter {
-      display: flex; align-items: center; gap: 8px; background: rgba(61, 220, 151, 0.1);
-      border: 1px solid rgba(61, 220, 151, 0.2); padding: 8px 14px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--ok);
-    }
-    .pulse-dot {
-      width: 8px; height: 8px; background-color: var(--ok); border-radius: 50%;
-      box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.7); animation: pulse 1.6s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(61, 220, 151, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(61, 220, 151, 0); }
-    }
 
     .nav-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
     .tab-btn {
@@ -99,16 +69,15 @@
     .view-panel { display: none; }
     .view-panel.active { display: block; }
 
-    /* --- DATA CONTROLS & FORMS --- */
     .admin-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
-    .section-title { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 16px; color: var(--brand2); display: flex; justify-content: space-between; align-items: center;}
+    .section-title { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 16px; color: var(--brand2); }
     
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
     input, select, textarea {
       width: 100%; padding: 10px 14px; background: var(--card2); border: 1px solid var(--line);
       border-radius: 10px; color: var(--text); font-size: 14px; box-sizing: border-box; outline: none;
     }
-    input:focus, select:focus { border-color: var(--brand2); }
+    input:focus, select:focus, textarea:focus { border-color: var(--brand2); }
 
     .btn {
       padding: 10px 18px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; transition: opacity 0.2s;
@@ -119,7 +88,6 @@
     .btn-muted { background: var(--card2); border: 1px solid var(--line); color: var(--text); }
     .btn-danger { background: #e53e3e; color: white; padding: 6px 12px; font-size: 12px; }
 
-    /* --- DATA TABLES --- */
     .table-responsive { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
     th { padding: 12px; border-bottom: 2px solid var(--line); color: var(--muted); font-weight: 600; }
@@ -127,35 +95,29 @@
     tr:hover td { background: rgba(255,255,255,0.01); }
 
     .order-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--line); }
     .status-msg { text-align: center; padding: 40px; color: var(--muted); }
   </style>
 </head>
 <body>
 
-  <!-- Hidden Door Lock Screen Overlay -->
-  <div id="lockScreen" class="lock-screen">
+  <!-- Gatekeeper Security Screen -->
+  <div id="lockScreen">
     <div class="lock-box">
-      <h2>One Bite <span>Admin</span></h2>
-      <p>Please log in to manage your kitchen orders & products.</p>
-      <input type="password" id="passKey" placeholder="Enter Admin Password" onkeydown="if(event.key === 'Enter') unlockDashboard()">
-      <button onclick="unlockDashboard()" class="btn btn-brand" style="width:100%">Access Panel</button>
-      <div id="errorMsg" class="error-text">❌ Incorrect Password! Access Denied.</div>
+      <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Enter administrative access key</p>
+      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === 'Enter') verifyGate()">
+      <button class="btn btn-brand" onclick="verifyGate()" style="width:100%;">Access Dashboard</button>
     </div>
   </div>
 
-  <!-- Main Dashboard Container -->
-  <div id="dashboardContainer" class="container">
+  <div class="container" id="dashboardContainer">
     <header>
       <div>
         <h1>One Bite <span>Dashboard</span></h1>
         <p>Live Back-office Control Center</p>
       </div>
-      <div class="header-actions">
-        <div class="live-counter">
-          <div class="pulse-dot"></div>
-          <span id="liveCount">0</span> viewing
-        </div>
-      </div>
+      <button class="btn btn-muted" onclick="loadAllData()">🔄 Master Refresh</button>
     </header>
 
     <!-- Navigation Tabs -->
@@ -167,24 +129,19 @@
 
     <!-- TAB 1: LIVE ORDERS -->
     <div id="orders-tab" class="view-panel active">
-      <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-        <h3 style="margin:0;">Incoming Receipts</h3>
-        <button class="btn btn-muted" onclick="fetchOrders()">🔄 Refresh Orders</button>
-      </div>
       <div id="ordersContainer"></div>
     </div>
 
     <!-- TAB 2: PRODUCTS/ITEMS MANAGEMENT -->
     <div id="menu-tab" class="view-panel">
-      <!-- Item Editor Form (Handles both Add & Update) -->
       <div class="admin-card">
         <h3 class="section-title" id="itemFormTitle">Add New Product Item</h3>
         <form id="itemForm" onsubmit="saveItem(event)">
-          <input type="hidden" id="itemIdField">
+          <input type="hidden" id="editingItemId">
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Product Name</label>
-              <input type="text" id="itemName" placeholder="e.g., Chicken Tikka Pizza" required>
+              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Assignment</label>
@@ -192,21 +149,23 @@
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Base Price (Rs)</label>
-              <input type="number" id="itemPrice" placeholder="e.g., 1200" required>
+              <input type="number" id="itemPrice" placeholder="1499" required>
+            </div>
+          </div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Image URL</label>
+              <input type="url" id="itemImage" placeholder="https://images.unsplash.com/...">
             </div>
           </div>
           <div style="margin-bottom: 14px;">
             <label style="font-size:12px; color:var(--muted)">Description</label>
-            <textarea id="itemDesc" rows="2" placeholder="Describe the food ingredients..."></textarea>
+            <textarea id="itemDesc" rows="2" placeholder="Describe ingredients..."></textarea>
           </div>
-          <div style="display:flex; gap:10px;">
-            <button type="submit" class="btn btn-ok" id="itemSubmitBtn">✨ Save Product</button>
-            <button type="button" class="btn btn-muted" onclick="resetItemForm()" id="itemCancelBtn" style="display:none;">Cancel Edit</button>
-          </div>
+          <button type="submit" class="btn btn-ok" id="itemSubmitBtn">✨ Save Product</button>
         </form>
       </div>
 
-      <!-- Current Items Inventory -->
       <div class="admin-card">
         <h3 class="section-title">Current Inventory Items</h3>
         <div class="table-responsive">
@@ -228,32 +187,41 @@
 
     <!-- TAB 3: CATEGORIES MANAGEMENT -->
     <div id="categories-tab" class="view-panel">
-      <!-- Category Editor Form -->
       <div class="admin-card">
         <h3 class="section-title" id="catFormTitle">Create New Menu Category</h3>
         <form id="categoryForm" onsubmit="saveCategory(event)">
-          <input type="hidden" id="catIdField">
-          <div class="form-grid" style="grid-template-columns: 1fr auto;">
+          <input type="hidden" id="editingCatId">
+          <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Name</label>
-              <input type="text" id="catName" placeholder="e.g., Burgers, Pizzas, Drinks" required>
+              <input type="text" id="catName" placeholder="e.g., Pizza" required>
             </div>
-            <div style="display:flex; align-items:flex-end; gap:10px;">
-              <button type="submit" class="btn btn-ok" id="catSubmitBtn">📁 Save Category</button>
-              <button type="button" class="btn btn-muted" onclick="resetCategoryForm()" id="catCancelBtn" style="display:none;">Cancel</button>
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Short Tagline</label>
+              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required>
+            </div>
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Icon Emoji</label>
+              <input type="text" id="catIcon" placeholder="🍕" required>
             </div>
           </div>
+          <div style="margin-bottom: 14px;">
+            <label style="font-size:12px; color:var(--muted)">Category Image URL</label>
+            <input type="url" id="catImage" placeholder="https://images.unsplash.com/...">
+          </div>
+          <button type="submit" class="btn btn-ok" id="catSubmitBtn">📁 Save Category</button>
         </form>
       </div>
 
-      <!-- Current Categories Inventory -->
       <div class="admin-card">
         <h3 class="section-title">Active Categories</h3>
         <div class="table-responsive">
           <table>
             <thead>
               <tr>
+                <th>Icon</th>
                 <th>Category Name</th>
+                <th>Tagline</th>
                 <th style="text-align:right">Actions</th>
               </tr>
             </thead>
@@ -262,42 +230,31 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
-    // 1. SET YOUR SECRET PASSWORD HERE
-    const SECRET_ADMIN_PASSWORD = "Noman Shaikh";
+    const MASTER_SECRET = "onebite2026"; 
 
-    // 2. PASTE YOUR EXACT PUBLIC SUPABASE KEYS HERE
-    const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
-    
-    let sb;
-    let globalRoom;
-    let localCategoriesCache = [];
-    let localItemsCache = [];
-
-    function unlockDashboard() {
+    function verifyGate() {
       const input = document.getElementById("passKey").value;
-      if (input === SECRET_ADMIN_PASSWORD) {
+      if (input === MASTER_SECRET) {
         document.getElementById("lockScreen").style.display = "none";
         document.getElementById("dashboardContainer").style.display = "block";
-        initSupabaseAndRealtime();
         loadAllData();
       } else {
-        document.getElementById("errorMsg").style.display = "block";
+        alert("Access Denied: Invalid Admin Key");
         document.getElementById("passKey").value = "";
       }
     }
 
-    function initSupabaseAndRealtime() {
-      sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      globalRoom = sb.channel('onebite-live-occupancy');
-      globalRoom.on('presence', { event: 'sync' }, () => {
-        document.getElementById("liveCount").innerText = Object.keys(globalRoom.presenceState()).length;
-      }).subscribe();
-    }
+    const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let localCategoriesCache = [];
+    let localItemsCache = [];
+    let isEditingItem = false;
+    let isEditingCat = false;
 
     function switchTab(tabId, btnElement) {
       document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
@@ -316,9 +273,7 @@
       return "Rs " + Number(n).toLocaleString("en-PK");
     }
 
-    /* =========================================================================
-       ORDER DASHBOARD CONTROLS 
-       ========================================================================= */
+    /* ── ORDERS CONTROLS ── */
     async function fetchOrders() {
       const container = document.getElementById("ordersContainer");
       container.innerHTML = '<div class="status-msg">Fetching records...</div>';
@@ -326,7 +281,7 @@
         const { data: orders, error } = await sb.from("orders").select("*").order("created_at", { ascending: false });
         if (error) throw error;
         if (!orders || orders.length === 0) {
-          container.innerHTML = '<div class="status-msg">🍽️ No orders placed yet!</div>';
+          container.innerHTML = '<div class="status-msg">🍽️ No live receipts found!</div>';
           return;
         }
         container.innerHTML = "";
@@ -337,121 +292,124 @@
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;">
               <div>
                 <span style="font-weight:700; font-size:16px;">${order.customer_name || 'Anonymous'}</span>
-                <a href="tel:${order.customer_phone}" style="font-size:14px; color:var(--brand2); margin-left:8px; text-decoration:none;">${order.customer_phone || ''}</a>
+                <span style="font-size:14px; color:var(--brand2); margin-left:8px;">${order.customer_phone || ''}</span>
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
                 <span class="chip">${order.payment_method || 'COD'}</span>
                 <button class="btn btn-danger" onclick="deleteOrder('${order.id}')" style="padding:4px 8px; font-size:11px;">Clear</button>
               </div>
             </div>
-            <div style="font-size:15px; margin-bottom:12px;">Item: <strong>${order.qty || 1}x ${order.item_name}</strong> ${order.size ? `(${order.size})` : ''}</div>
-            <div class="order-address">📍 <strong>Delivery Address:</strong><br>${order.customer_address || 'No address provided'}</div>
+            <div style="font-size:15px; margin-bottom:12px;">
+              Item: <strong>${order.qty || 1}x ${order.item_name}</strong> 
+              ${order.size ? `<span style="color:var(--brand2)">(${order.size.toUpperCase()})</span>` : ''} 
+              <span style="color:var(--muted); font-size:13px;">[Category: ${order.category_name}]</span>
+            </div>
+            <div style="background:var(--card2); padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;">
+              📍 <strong>Address:</strong> ${order.customer_address || 'None'}
+            </div>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:rgba(238, 242, 255, 0.5);">
-              <span>Placed: ${new Date(order.created_at).toLocaleString("en-PK")}</span>
-              <span class="total-price" style="font-size:16px; font-weight:700; color:var(--ok);">${money(order.total)}</span>
+              <span>Placed: ${order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : 'Just now'}</span>
+              <span style="font-size:16px; font-weight:700; color:var(--ok);">${money(order.total)}</span>
             </div>
           `;
           container.appendChild(card);
         });
       } catch (err) {
-        container.innerHTML = `<div class="status-msg" style="color:var(--brand)">❌ Failed to load orders: ${err.message}</div>`;
+        container.innerHTML = `<div class="status-msg" style="color:var(--brand)">❌ Error loading orders: ${err.message}</div>`;
       }
     }
 
-    async function deleteOrder(orderId) {
-      if (!confirm("Are you sure you want to permanently clear this order profile entry?")) return;
+    async function deleteOrder(id) {
+      if (!confirm("Remove this order profile from live stack?")) return;
       try {
-        const { error } = await sb.from("orders").delete().eq("id", orderId);
+        const { error } = await sb.from("orders").delete().eq("id", id);
         if (error) throw error;
         fetchOrders();
-      } catch (err) { alert("Error removing item: " + err.message); }
+      } catch (err) { alert("Delete error: " + err.message); }
     }
 
-
-    /* =========================================================================
-       CATEGORY MANAGEMENT CONTROLS
-       ========================================================================= */
+    /* ── CATEGORIES CONTROLS ── */
     async function fetchCategories() {
       const tbody = document.getElementById("categoriesTableBody");
       const dropdown = document.getElementById("itemCategory");
-      tbody.innerHTML = '<tr><td colspan="2" class="status-msg">Loading categories...</td></tr>';
-      
+      tbody.innerHTML = '<tr><td colspan="4" class="status-msg">Loading...</td></tr>';
       try {
-        const { data: categories, error } = await sb.from("categories").select("*").order("name", { ascending: true });
+        const { data: categories, error } = await sb.from("categories").select("*");
         if (error) throw error;
         localCategoriesCache = categories || [];
         
-        // Render Table Rows
         tbody.innerHTML = "";
         dropdown.innerHTML = '<option value="">Select Category</option>';
         
-        if (localCategoriesCache.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="2" class="status-msg">No structural categories established.</td></tr>';
-          return;
-        }
-
         localCategoriesCache.forEach(cat => {
           dropdown.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td style="font-weight:600;">${cat.name}</td>
+            <td style="font-size:20px;">${cat.icon || '📁'}</td>
+            <td><strong>${cat.name}</strong></td>
+            <td>${cat.short || ''}</td>
             <td style="text-align:right;">
-              <button class="btn btn-muted" onclick="editCategory('${cat.id}', '${cat.name}')" style="padding:4px 8px; font-size:12px; margin-right:6px;">Edit</button>
+              <button class="btn btn-muted" onclick="editCategory('${cat.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
               <button class="btn btn-danger" onclick="deleteCategory('${cat.id}')">Remove</button>
             </td>
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) { tbody.innerHTML = `<tr><td colspan="2" class="status-msg" style="color:var(--brand)">Error: ${err.message}</td></tr>`; }
+      } catch (err) { tbody.innerHTML = `<tr><td colspan="4">Error: ${err.message}</td></tr>`; }
     }
 
     async function saveCategory(e) {
       e.preventDefault();
-      const id = document.getElementById("catIdField").value;
       const name = document.getElementById("catName").value.trim();
+      const short = document.getElementById("catShort").value.trim();
+      const icon = document.getElementById("catIcon").value.trim();
+      const image = document.getElementById("catImage").value.trim();
+
+      const payload = { name, short, icon, image };
+
       try {
-        if (id) { // Update Operation
-          const { error } = await sb.from("categories").update({ name }).eq("id", id);
-          if (error) throw error;
-        } else { // Insert Operation
-          const { error } = await sb.from("categories").insert([{ name }]);
-          if (error) throw error;
+        if (isEditingCat) {
+          const id = document.getElementById("editingCatId").value;
+          const { error } = await sb.from("categories").update(payload).eq("id", id);
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
+        } else {
+          const { error } = await sb.from("categories").insert([payload]);
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
         }
-        resetCategoryForm();
+        resetCatForm();
         fetchCategories();
-        fetchItems(); // Sync changes inside product item render view templates
-      } catch (err) { alert("Database Mutation Denied: " + err.message); }
+        alert("Category successfully saved!");
+      } catch (err) { alert("System Error: " + err.message); }
     }
 
-    function editCategory(id, name) {
-      document.getElementById("catIdField").value = id;
-      document.getElementById("catName").value = name;
-      document.getElementById("catFormTitle").innerText = "Modify Menu Category";
-      document.getElementById("catSubmitBtn").innerText = "Apply Update";
-      document.getElementById("catCancelBtn").style.display = "inline-block";
+    function editCategory(id) {
+      const cat = localCategoriesCache.find(c => c.id === id);
+      if (!cat) return;
+      isEditingCat = true;
+      document.getElementById("editingCatId").value = cat.id;
+      document.getElementById("catName").value = cat.name || '';
+      document.getElementById("catShort").value = cat.short || '';
+      document.getElementById("catIcon").value = cat.icon || '';
+      document.getElementById("catImage").value = cat.image || '';
+      document.getElementById("catSubmitBtn").innerText = "Apply Category Updates";
     }
 
-    function resetCategoryForm() {
-      document.getElementById("catIdField").value = "";
-      document.getElementById("catName").value = "";
-      document.getElementById("catFormTitle").innerText = "Create New Menu Category";
+    function resetCatForm() {
+      isEditingCat = false;
+      document.getElementById("categoryForm").reset();
       document.getElementById("catSubmitBtn").innerText = "📁 Save Category";
-      document.getElementById("catCancelBtn").style.display = "none";
     }
 
     async function deleteCategory(id) {
-      if (!confirm("Warning: Removing this layout option might disassociate active child products. Proceed?")) return;
+      if (!confirm("Are you sure? This will break items mapped to this category.")) return;
       try {
         const { error } = await sb.from("categories").delete().eq("id", id);
         if (error) throw error;
         fetchCategories();
-      } catch (err) { alert("Action Denied: " + err.message); }
+      } catch (err) { alert("Delete error: " + err.message); }
     }
 
-
-    /* =========================================================================
-       PRODUCT / ITEM MANAGEMENT CONTROLS
-       ========================================================================= */
+    /* ── ITEMS CONTROLS ── */
     async function fetchItems() {
       const tbody = document.getElementById("itemsTableBody");
       tbody.innerHTML = '<tr><td colspan="5" class="status-msg">Loading inventory...</td></tr>';
@@ -461,84 +419,74 @@
         localItemsCache = items || [];
         tbody.innerHTML = "";
 
-        if (localItemsCache.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="status-msg">No menu item products logged.</td></tr>';
-          return;
-        }
-
         localItemsCache.forEach(item => {
-          const categoryObj = localCategoriesCache.find(c => String(c.id) === String(item.category_id));
-          const catName = categoryObj ? categoryObj.name : `<span style="color:var(--brand); font-size:11px;">Orphaned ID: ${item.category_id}</span>`;
-          
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td style="font-weight:600; color:#fff;">${item.name}</td>
-            <td>${catName}</td>
+            <td><strong>${item.name}</strong></td>
+            <td><span class="chip">${item.category_id}</span></td>
             <td style="color:var(--ok); font-weight:600;">${money(item.price)}</td>
-            <td style="max-width:220px; color:rgba(238,242,255,0.6); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
-            <td style="text-align:right; white-space:nowrap;">
-              <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px; margin-right:6px;">Edit</button>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
+            <td style="text-align:right;">
+              <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
               <button class="btn btn-danger" onclick="deleteItem('${item.id}')">Remove</button>
             </td>
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) { tbody.innerHTML = `<tr><td colspan="5" class="status-msg" style="color:var(--brand)">Error: ${err.message}</td></tr>`; }
+      } catch (err) { tbody.innerHTML = `<tr><td colspan="5">Error: ${err.message}</td></tr>`; }
     }
 
     async function saveItem(e) {
       e.preventDefault();
-      const id = document.getElementById("itemIdField").value;
       const name = document.getElementById("itemName").value.trim();
       const category_id = document.getElementById("itemCategory").value;
       const price = Number(document.getElementById("itemPrice").value);
       const description = document.getElementById("itemDesc").value.trim();
+      const image = document.getElementById("itemImage").value.trim();
 
-      const payload = { name, category_id, price, description };
+      const payload = { name, category_id, price, description, image };
 
       try {
-        if (id) {
+        if (isEditingItem) {
+          const id = document.getElementById("editingItemId").value;
           const { error } = await sb.from("items").update(payload).eq("id", id);
-          if (error) throw error;
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
         } else {
           const { error } = await sb.from("items").insert([payload]);
-          if (error) throw error;
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
         }
         resetItemForm();
         fetchItems();
-      } catch (err) { alert("Write Operation Failed: " + err.message); }
+        alert("Product successfully saved!");
+      } catch (err) { alert("System Error: " + err.message); }
     }
 
     function editItem(id) {
-      const item = localItemsCache.find(i => String(i.id) === String(id));
+      const item = localItemsCache.find(i => i.id === id);
       if (!item) return;
-
-      document.getElementById("itemIdField").value = item.id;
-      document.getElementById("itemName").value = item.name;
-      document.getElementById("itemCategory").value = item.category_id;
-      document.getElementById("itemPrice").value = item.price;
-      document.getElementById("itemDesc").value = item.description || "";
-
-      document.getElementById("itemFormTitle").innerText = "Modify Product Configuration";
-      document.getElementById("itemSubmitBtn").innerText = "Apply Updates";
-      document.getElementById("itemCancelBtn").style.display = "inline-block";
+      isEditingItem = true;
+      document.getElementById("editingItemId").value = item.id;
+      document.getElementById("itemName").value = item.name || '';
+      document.getElementById("itemCategory").value = item.category_id || '';
+      document.getElementById("itemPrice").value = item.price || '';
+      document.getElementById("itemDesc").value = item.description || '';
+      document.getElementById("itemImage").value = item.image || '';
+      document.getElementById("itemSubmitBtn").innerText = "Apply Product Updates";
     }
 
     function resetItemForm() {
-      document.getElementById("itemIdField").value = "";
+      isEditingItem = false;
       document.getElementById("itemForm").reset();
-      document.getElementById("itemFormTitle").innerText = "Add New Product Item";
       document.getElementById("itemSubmitBtn").innerText = "✨ Save Product";
-      document.getElementById("itemCancelBtn").style.display = "none";
     }
 
     async function deleteItem(id) {
-      if (!confirm("Are you sure you want to delete this product from the public menu listing?")) return;
+      if (!confirm("Delete this menu product?")) return;
       try {
         const { error } = await sb.from("items").delete().eq("id", id);
         if (error) throw error;
         fetchItems();
-      } catch (err) { alert("Deletion Terminated: " + err.message); }
+      } catch (err) { alert("Delete error: " + err.message); }
     }
   </script>
 </body>
