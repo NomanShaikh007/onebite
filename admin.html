@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -124,6 +125,7 @@
 </head>
 <body>
 
+  <!-- Gatekeeper Security Screen -->
   <div id="lockScreen">
     <div class="lock-box">
       <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
@@ -148,16 +150,19 @@
       </div>
     </header>
 
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
       <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
       <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
     </div>
 
+    <!-- TAB 1: LIVE ORDERS -->
     <div id="orders-tab" class="view-panel active">
       <div id="ordersContainer"></div>
     </div>
 
+    <!-- TAB 2: PRODUCTS/ITEMS MANAGEMENT -->
     <div id="menu-tab" class="view-panel">
       <div class="admin-card">
         <h3 class="section-title" id="itemFormTitle">Add New Product Item</h3>
@@ -210,6 +215,7 @@
       </div>
     </div>
 
+    <!-- TAB 3: CATEGORIES MANAGEMENT -->
     <div id="categories-tab" class="view-panel">
       <div class="admin-card">
         <h3 class="section-title" id="catFormTitle">Create New Menu Category</h3>
@@ -312,7 +318,6 @@
         }
         container.innerHTML = "";
         orders.forEach(order => {
-          // Create short readable order string from row ID
           const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
           
           const card = document.createElement("div");
@@ -357,66 +362,81 @@
       const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
       const dateStr = order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : new Date().toLocaleString("en-PK");
       
-      // Build a minimalist receipt document for standard printing
-      const printWindow = window.open('', '_blank', 'width=400,height=600');
+      const printWindow = window.open('', '_blank', 'width=300,height=600');
       printWindow.document.write(`
         <html>
         <head>
           <title>Receipt #${orderNum}</title>
           <style>
-            body { font-family: 'Courier New', Courier, monospace; color: #000; background: #fff; padding: 20px; font-size: 14px; line-height: 1.4; }
+            @page { margin: 0; }
+            body { 
+              font-family: 'Courier New', Courier, monospace; 
+              color: #000; 
+              background: #fff; 
+              margin: 0;
+              padding: 10px; 
+              font-size: 12px; 
+              line-height: 1.3;
+              width: 100%;
+              box-sizing: border-box;
+            }
             .center { text-align: center; }
             .bold { font-weight: bold; }
-            .divider { border-top: 1px dashed #000; margin: 10px 0; }
-            table { width: 100%; border-collapse: collapse; }
+            .divider { border-top: 1px dashed #000; margin: 8px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 5px; }
             .right { text-align: right; }
-            .totals { font-size: 16px; font-weight: bold; margin-top: 10px; }
+            .totals { font-size: 14px; font-weight: bold; margin-top: 10px; text-align: right; }
+            .info-block p { margin: 3px 0; word-wrap: break-word; }
           </style>
         </head>
         <body>
           <div class="center">
-            <h2 style="margin:0 0 5px 0;">ONE BITE</h2>
-            <p style="margin:0 0 15px 0; font-size:12px;">Taste Worth Living For</p>
-            <p class="bold">ORDER ID: #${orderNum}</p>
-            <p style="font-size:12px;">${dateStr}</p>
+            <h3 style="margin: 0 0 2px 0; font-size: 16px;">ONE BITE</h3>
+            <p style="margin: 0 0 8px 0; font-size: 10px; letter-spacing: 1px;">Taste Worth Living For</p>
+            <p class="bold" style="font-size: 13px; margin: 5px 0;">ORDER: #${orderNum}</p>
+            <p style="font-size: 10px; margin: 0;">${dateStr}</p>
           </div>
           
           <div class="divider"></div>
           
-          <p><span class="bold">Customer:</span> ${order.customer_name || 'Walk-in'}</p>
-          <p><span class="bold">Phone:</span> ${order.customer_phone || '—'}</p>
-          <p><span class="bold">Address:</span> ${order.customer_address || 'Delivery'}</p>
+          <div class="info-block">
+            <p><span class="bold">Cust:</span> ${order.customer_name || 'Walk-in'}</p>
+            <p><span class="bold">Cell:</span> ${order.customer_phone || '—'}</p>
+            <p><span class="bold">Addr:</span> ${order.customer_address || 'Delivery'}</p>
+          </div>
           
           <div class="divider"></div>
           
           <table>
             <thead>
               <tr>
-                <th align="left">Item Description</th>
-                <th class="right">Qty</th>
-                <th class="right">Total</th>
+                <th align="left" style="font-size: 11px;">Item</th>
+                <th class="right" style="font-size: 11px; width: 30px;">Qty</th>
+                <th class="right" style="font-size: 11px; width: 70px;">Total</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>
+                <td style="font-size: 11px; padding: 4px 0; vertical-align: top;">
                   ${order.item_name} 
-                  ${order.size ? `(${order.size.toUpperCase()})` : ''}
+                  ${order.size ? `<br><small>(${order.size.toUpperCase()})</small>` : ''}
                 </td>
-                <td class="right">${order.qty || 1}</td>
-                <td class="right">Rs ${Number(order.total).toLocaleString()}</td>
+                <td class="right" style="font-size: 11px; padding: 4px 0; vertical-align: top;">${order.qty || 1}</td>
+                <td class="right" style="font-size: 11px; padding: 4px 0; vertical-align: top;">Rs ${Number(order.total).toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
           
           <div class="divider"></div>
           
-          <div class="right totals">
-            NET PAYABLE: Rs ${Number(order.total).toLocaleString()}
+          <div class="totals">
+            TOTAL: Rs ${Number(order.total).toLocaleString()}
           </div>
           
-          <p class="center" style="margin-top:30px; font-size:11px;">Payment Mode: ${order.payment_method || 'COD'}</p>
-          <p class="center" style="font-size:12px; margin-top:10px;">*** Thank you for your order! ***</p>
+          <div class="center" style="margin-top: 20px;">
+            <p style="margin: 0; font-size: 10px;">Payment: ${order.payment_method || 'COD'}</p>
+            <p style="margin: 5px 0 0 0; font-size: 11px; font-weight: bold;">*** Thank You! ***</p>
+          </div>
           
           <script>
             window.onload = function() {
@@ -538,7 +558,7 @@
             <td style="color:var(--ok); font-weight:600;">${money(item.price)}</td>
             <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
             <td style="text-align:right;">
-              <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
+              -- <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
               <button class="btn btn-danger" onclick="deleteItem('${item.id}')">Remove</button>
             </td>
           `;
