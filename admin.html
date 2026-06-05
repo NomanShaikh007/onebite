@@ -353,9 +353,7 @@
       } catch (err) {
         container.innerHTML = `<div class="status-msg" style="color:var(--brand)">❌ Error loading orders: ${err.message}</div>`;
       }
-    }
-
-    function printReceipt(orderId) {
+  function printReceipt(orderId) {
       const order = localOrdersCache.find(o => o.id === orderId);
       if (!order) { alert("Order details missing!"); return; }
       
@@ -368,33 +366,42 @@
         <head>
           <title>Receipt #${orderNum}</title>
           <style>
-            @page { margin: 0; }
+            @media print {
+              @page { 
+                size: 58mm auto; /* Forces browser layout to match 58mm roll width */
+                margin: 0px; 
+              }
+              body { 
+                margin: 0px; 
+                padding: 5px;
+              }
+            }
             body { 
               font-family: 'Courier New', Courier, monospace; 
               color: #000; 
               background: #fff; 
               margin: 0;
-              padding: 10px; 
-              font-size: 12px; 
+              padding: 8px; 
+              font-size: 11px; 
               line-height: 1.3;
-              width: 100%;
+              width: 58mm; /* Limits text boundary strictly to standard roll size */
               box-sizing: border-box;
             }
             .center { text-align: center; }
             .bold { font-weight: bold; }
-            .divider { border-top: 1px dashed #000; margin: 8px 0; }
-            table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+            .divider { border-top: 1px dashed #000; margin: 6px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 4px; }
             .right { text-align: right; }
-            .totals { font-size: 14px; font-weight: bold; margin-top: 10px; text-align: right; }
-            .info-block p { margin: 3px 0; word-wrap: break-word; }
+            .totals { font-size: 13px; font-weight: bold; margin-top: 8px; text-align: right; }
+            .info-block p { margin: 2px 0; word-wrap: break-word; }
           </style>
         </head>
         <body>
           <div class="center">
-            <h3 style="margin: 0 0 2px 0; font-size: 16px;">ONE BITE</h3>
-            <p style="margin: 0 0 8px 0; font-size: 10px; letter-spacing: 1px;">Taste Worth Living For</p>
-            <p class="bold" style="font-size: 13px; margin: 5px 0;">ORDER: #${orderNum}</p>
-            <p style="font-size: 10px; margin: 0;">${dateStr}</p>
+            <h3 style="margin: 0 0 2px 0; font-size: 15px;">ONE BITE</h3>
+            <p style="margin: 0 0 6px 0; font-size: 9px; letter-spacing: 0.5px;">Taste Worth Living For</p>
+            <p class="bold" style="font-size: 12px; margin: 4px 0;">ORDER: #${orderNum}</p>
+            <p style="font-size: 9px; margin: 0;">${dateStr}</p>
           </div>
           
           <div class="divider"></div>
@@ -410,19 +417,19 @@
           <table>
             <thead>
               <tr>
-                <th align="left" style="font-size: 11px;">Item</th>
-                <th class="right" style="font-size: 11px; width: 30px;">Qty</th>
-                <th class="right" style="font-size: 11px; width: 70px;">Total</th>
+                <th align="left" style="font-size: 10px;">Item</th>
+                <th class="right" style="font-size: 10px; width: 25px;">Qty</th>
+                <th class="right" style="font-size: 10px; width: 65px;">Total</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style="font-size: 11px; padding: 4px 0; vertical-align: top;">
+                <td style="font-size: 10px; padding: 2px 0; vertical-align: top;">
                   ${order.item_name} 
                   ${order.size ? `<br><small>(${order.size.toUpperCase()})</small>` : ''}
                 </td>
-                <td class="right" style="font-size: 11px; padding: 4px 0; vertical-align: top;">${order.qty || 1}</td>
-                <td class="right" style="font-size: 11px; padding: 4px 0; vertical-align: top;">Rs ${Number(order.total).toLocaleString()}</td>
+                <td class="right" style="font-size: 10px; padding: 2px 0; vertical-align: top;">${order.qty || 1}</td>
+                <td class="right" style="font-size: 10px; padding: 2px 0; vertical-align: top;">Rs ${Number(order.total).toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
@@ -433,9 +440,9 @@
             TOTAL: Rs ${Number(order.total).toLocaleString()}
           </div>
           
-          <div class="center" style="margin-top: 20px;">
-            <p style="margin: 0; font-size: 10px;">Payment: ${order.payment_method || 'COD'}</p>
-            <p style="margin: 5px 0 0 0; font-size: 11px; font-weight: bold;">*** Thank You! ***</p>
+          <div class="center" style="margin-top: 15px; padding-bottom: 15px;">
+            <p style="margin: 0; font-size: 9px;">Payment: ${order.payment_method || 'COD'}</p>
+            <p style="margin: 3px 0 0 0; font-size: 10px; font-weight: bold;">*** Thank You! ***</p>
           </div>
           
           <script>
@@ -448,8 +455,7 @@
         </html>
       `);
       printWindow.document.close();
-    }
-
+    }  
     async function deleteOrder(id) {
       if (!confirm("Remove this order profile from live stack?")) return;
       try {
