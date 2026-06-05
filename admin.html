@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -54,6 +55,41 @@
     h1 span { color: var(--brand); }
     header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Live Counter Styling */
+    .live-counter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(61, 220, 151, 0.1);
+      border: 1px solid rgba(61, 220, 151, 0.2);
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ok);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--ok);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(61, 220, 151, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(61, 220, 151, 0); }
+    }
+
     .refresh-btn {
       background: var(--card2);
       border: 1px solid var(--line);
@@ -93,7 +129,7 @@
     }
 
     .customer-name { font-weight: 700; font-size: 16px; }
-    .customer-phone { font-size: 14px; color: var(--brand2); margin-left: 8px; }
+    .customer-phone { font-size: 14px; color: var(--brand2); margin-left: 8px; text-decoration: none; }
 
     .chip {
       background: rgba(255, 184, 77, 0.1);
@@ -124,20 +160,8 @@
       color: rgba(238, 242, 255, 0.5);
     }
 
-    .total-price {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--ok);
-    }
-
-    .status-msg {
-      text-align: center;
-      padding: 40px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      color: var(--muted);
-    }
+    .total-price { font-size: 16px; font-weight: 700; color: var(--ok); }
+    .status-msg { text-align: center; padding: 40px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); }
   </style>
 </head>
 <body>
@@ -148,7 +172,14 @@
         <h1>One Bite <span>Dashboard</span></h1>
         <p>Live incoming restaurant orders</p>
       </div>
-      <button class="refresh-btn" onclick="fetchOrders()">🔄 Refresh</button>
+      <div class="header-actions">
+        <!-- Live Audience Counter -->
+        <div class="live-counter">
+          <div class="pulse-dot"></div>
+          <span id="liveCount">0</span> viewing
+        </div>
+        <button class="refresh-btn" onclick="fetchOrders()">🔄 Refresh</button>
+      </div>
     </header>
 
     <div id="ordersContainer" class="orders-list">
@@ -157,13 +188,25 @@
   </div>
 
   <script>
-    // 1. Paste your exact Supabase Credentials here (same as your index.html)
-    const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
+    // Paste your exact Supabase Credentials here (same as your index.html)
+    const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
+    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
     
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Formatter for Currency
+    // --- REALTIME PRESENCE LISTENER ---
+    const globalRoom = sb.channel('onebite-live-occupancy');
+    
+    globalRoom
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = globalRoom.presenceState();
+        // Count how many unique browser instances are currently active in the channel
+        const count = Object.keys(presenceState).length;
+        document.getElementById("liveCount").innerText = count;
+      })
+      .subscribe();
+
+    // Money Formatter
     function money(n) {
       return "Rs " + Number(n).toLocaleString("en-PK");
     }
@@ -186,7 +229,7 @@
           return;
         }
 
-        container.innerHTML = ""; // Clear loader
+        container.innerHTML = "";
 
         orders.forEach(order => {
           const card = document.createElement("div");
@@ -226,7 +269,6 @@
       }
     }
 
-    // Load instantly on page open
     window.addEventListener("DOMContentLoaded", fetchOrders);
   </script>
 </body>
