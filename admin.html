@@ -60,6 +60,29 @@
     h1 span { color: var(--brand); }
     header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
 
+    /* Live Viewing Tracker Pill */
+    .live-viewing {
+      background: rgba(61, 220, 151, 0.1);
+      border: 1px solid rgba(61, 220, 151, 0.2);
+      color: var(--ok);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-dot {
+      width: 8px; height: 8px; background: var(--ok); border-radius: 50%;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
     .nav-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
     .tab-btn {
       background: transparent; border: none; color: var(--muted); padding: 10px 20px;
@@ -117,7 +140,13 @@
         <h1>One Bite <span>Dashboard</span></h1>
         <p>Live Back-office Control Center</p>
       </div>
-      <button class="btn btn-muted" onclick="loadAllData()">🔄 Master Refresh</button>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="live-viewing">
+          <div class="live-dot"></div>
+          <span>1 viewing</span>
+        </div>
+        <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
+      </div>
     </header>
 
     <!-- Navigation Tabs -->
