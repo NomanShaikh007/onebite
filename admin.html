@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
-  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -60,7 +59,6 @@
     h1 span { color: var(--brand); }
     header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
 
-    /* Live Viewing Tracker Pill */
     .live-viewing {
       background: rgba(61, 220, 151, 0.1);
       border: 1px solid rgba(61, 220, 151, 0.2);
@@ -109,7 +107,8 @@
     .btn-brand { background: var(--brand); color: #fff; }
     .btn-ok { background: var(--ok); color: #0b0c10; }
     .btn-muted { background: var(--card2); border: 1px solid var(--line); color: var(--text); }
-    .btn-danger { background: #e53e3e; color: white; padding: 6px 12px; font-size: 12px; }
+    .btn-print { background: #3182ce; color: white; padding: 4px 10px; font-size: 12px; }
+    .btn-danger { background: #e53e3e; color: white; padding: 4px 10px; font-size: 12px; }
 
     .table-responsive { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
@@ -119,12 +118,12 @@
 
     .order-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
     .chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--line); }
+    .order-num { font-family: monospace; background: rgba(255, 184, 77, 0.15); color: var(--brand2); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 13px; }
     .status-msg { text-align: center; padding: 40px; color: var(--muted); }
   </style>
 </head>
 <body>
 
-  <!-- Gatekeeper Security Screen -->
   <div id="lockScreen">
     <div class="lock-box">
       <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
@@ -149,19 +148,16 @@
       </div>
     </header>
 
-    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
       <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
       <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
     </div>
 
-    <!-- TAB 1: LIVE ORDERS -->
     <div id="orders-tab" class="view-panel active">
       <div id="ordersContainer"></div>
     </div>
 
-    <!-- TAB 2: PRODUCTS/ITEMS MANAGEMENT -->
     <div id="menu-tab" class="view-panel">
       <div class="admin-card">
         <h3 class="section-title" id="itemFormTitle">Add New Product Item</h3>
@@ -214,7 +210,6 @@
       </div>
     </div>
 
-    <!-- TAB 3: CATEGORIES MANAGEMENT -->
     <div id="categories-tab" class="view-panel">
       <div class="admin-card">
         <h3 class="section-title" id="catFormTitle">Create New Menu Category</h3>
@@ -282,6 +277,7 @@
 
     let localCategoriesCache = [];
     let localItemsCache = [];
+    let localOrdersCache = [];
     let isEditingItem = false;
     let isEditingCat = false;
 
@@ -309,23 +305,29 @@
       try {
         const { data: orders, error } = await sb.from("orders").select("*").order("created_at", { ascending: false });
         if (error) throw error;
+        localOrdersCache = orders || [];
         if (!orders || orders.length === 0) {
           container.innerHTML = '<div class="status-msg">🍽️ No live receipts found!</div>';
           return;
         }
         container.innerHTML = "";
         orders.forEach(order => {
+          // Create short readable order string from row ID
+          const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
+          
           const card = document.createElement("div");
           card.className = "order-card";
           card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;">
               <div>
-                <span style="font-weight:700; font-size:16px;">${order.customer_name || 'Anonymous'}</span>
+                <span class="order-num">#${orderNum}</span>
+                <span style="font-weight:700; font-size:16px; margin-left:8px;">${order.customer_name || 'Anonymous'}</span>
                 <span style="font-size:14px; color:var(--brand2); margin-left:8px;">${order.customer_phone || ''}</span>
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
                 <span class="chip">${order.payment_method || 'COD'}</span>
-                <button class="btn btn-danger" onclick="deleteOrder('${order.id}')" style="padding:4px 8px; font-size:11px;">Clear</button>
+                <button class="btn btn-print" onclick="printReceipt('${order.id}')">🖨️ Print</button>
+                <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">Clear</button>
               </div>
             </div>
             <div style="font-size:15px; margin-bottom:12px;">
@@ -346,6 +348,86 @@
       } catch (err) {
         container.innerHTML = `<div class="status-msg" style="color:var(--brand)">❌ Error loading orders: ${err.message}</div>`;
       }
+    }
+
+    function printReceipt(orderId) {
+      const order = localOrdersCache.find(o => o.id === orderId);
+      if (!order) { alert("Order details missing!"); return; }
+      
+      const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
+      const dateStr = order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : new Date().toLocaleString("en-PK");
+      
+      // Build a minimalist receipt document for standard printing
+      const printWindow = window.open('', '_blank', 'width=400,height=600');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Receipt #${orderNum}</title>
+          <style>
+            body { font-family: 'Courier New', Courier, monospace; color: #000; background: #fff; padding: 20px; font-size: 14px; line-height: 1.4; }
+            .center { text-align: center; }
+            .bold { font-weight: bold; }
+            .divider { border-top: 1px dashed #000; margin: 10px 0; }
+            table { width: 100%; border-collapse: collapse; }
+            .right { text-align: right; }
+            .totals { font-size: 16px; font-weight: bold; margin-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="center">
+            <h2 style="margin:0 0 5px 0;">ONE BITE</h2>
+            <p style="margin:0 0 15px 0; font-size:12px;">Taste Worth Living For</p>
+            <p class="bold">ORDER ID: #${orderNum}</p>
+            <p style="font-size:12px;">${dateStr}</p>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <p><span class="bold">Customer:</span> ${order.customer_name || 'Walk-in'}</p>
+          <p><span class="bold">Phone:</span> ${order.customer_phone || '—'}</p>
+          <p><span class="bold">Address:</span> ${order.customer_address || 'Delivery'}</p>
+          
+          <div class="divider"></div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th align="left">Item Description</th>
+                <th class="right">Qty</th>
+                <th class="right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  ${order.item_name} 
+                  ${order.size ? `(${order.size.toUpperCase()})` : ''}
+                </td>
+                <td class="right">${order.qty || 1}</td>
+                <td class="right">Rs ${Number(order.total).toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="divider"></div>
+          
+          <div class="right totals">
+            NET PAYABLE: Rs ${Number(order.total).toLocaleString()}
+          </div>
+          
+          <p class="center" style="margin-top:30px; font-size:11px;">Payment Mode: ${order.payment_method || 'COD'}</p>
+          <p class="center" style="font-size:12px; margin-top:10px;">*** Thank you for your order! ***</p>
+          
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
 
     async function deleteOrder(id) {
