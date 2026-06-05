@@ -36,8 +36,78 @@
     .container {
       max-width: 800px;
       margin: 0 auto;
+      display: none; /* Hidden by default until authenticated */
     }
 
+    /* --- PASSWORD SCREEN OVERLAY --- */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .lock-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 30px;
+      border-radius: var(--radius);
+      width: min(380px, 100%);
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .lock-box h2 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+    }
+    .lock-box h2 span { color: var(--brand); }
+    .lock-box p { margin: 0 0 20px 0; font-size: 13px; color: var(--muted); }
+
+    .lock-box input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--card2);
+      color: var(--text);
+      font-size: 15px;
+      text-align: center;
+      outline: none;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+    }
+    .lock-box input:focus {
+      border-color: var(--brand2);
+    }
+
+    .lock-box button {
+      width: 100%;
+      background: linear-gradient(180deg, rgba(255, 77, 77, 0.95), rgba(255, 77, 77, 0.78));
+      color: #160a0a;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .lock-box button:hover {
+      opacity: 0.95;
+    }
+
+    .error-text {
+      color: var(--brand);
+      font-size: 12px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* --- DASHBOARD LAYOUT STYLING --- */
     header {
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -55,13 +125,8 @@
     h1 span { color: var(--brand); }
     header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .header-actions { display: flex; align-items: center; gap: 14px; }
 
-    /* Live Counter Styling */
     .live-counter {
       display: flex;
       align-items: center;
@@ -76,12 +141,8 @@
     }
 
     .pulse-dot {
-      width: 8px;
-      height: 8px;
-      background-color: var(--ok);
-      border-radius: 50%;
-      box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.7);
-      animation: pulse 1.6s infinite;
+      width: 8px; height: 8px; background-color: var(--ok); border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.7); animation: pulse 1.6s infinite;
     }
 
     @keyframes pulse {
@@ -91,89 +152,52 @@
     }
 
     .refresh-btn {
-      background: var(--card2);
-      border: 1px solid var(--line);
-      color: var(--text);
-      padding: 10px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
+      background: var(--card2); border: 1px solid var(--line); color: var(--text);
+      padding: 10px 16px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s;
     }
-    .refresh-btn:hover {
-      background: var(--line);
-      border-color: var(--brand2);
-    }
+    .refresh-btn:hover { background: var(--line); border-color: var(--brand2); }
 
-    .orders-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    .orders-list { display: flex; flex-direction: column; gap: 16px; }
 
     .order-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-    }
-
+    .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 12px; }
     .customer-name { font-weight: 700; font-size: 16px; }
     .customer-phone { font-size: 14px; color: var(--brand2); margin-left: 8px; text-decoration: none; }
 
-    .chip {
-      background: rgba(255, 184, 77, 0.1);
-      color: var(--brand2);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
+    .chip { background: rgba(255, 184, 77, 0.1); color: var(--brand2); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .order-details { font-size: 15px; margin-bottom: 12px; line-height: 1.5; }
     .order-details strong { color: #fff; }
-
-    .order-address {
-      font-size: 13px; 
-      color: var(--muted);
-      background: rgba(255,255,255,0.03);
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-
-    .order-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: rgba(238, 242, 255, 0.5);
-    }
-
+    .order-address { font-size: 13px; color: var(--muted); background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+    .order-footer { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: rgba(238, 242, 255, 0.5); }
     .total-price { font-size: 16px; font-weight: 700; color: var(--ok); }
     .status-msg { text-align: center; padding: 40px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); }
   </style>
 </head>
 <body>
 
-  <div class="container">
+  <!-- Hidden Door Lock Screen Overlay -->
+  <div id="lockScreen" class="lock-screen">
+    <div class="lock-box">
+      <h2>One Bite <span>Admin</span></h2>
+      <p>Please log in to manage your kitchen orders.</p>
+      <input type="password" id="passKey" placeholder="Enter Admin Password" onkeydown="if(event.key === 'Enter') unlockDashboard()">
+      <button onclick="unlockDashboard()">Access Panel</button>
+      <div id="errorMsg" class="error-text">❌ Incorrect Password! Access Denied.</div>
+    </div>
+  </div>
+
+  <!-- Main Authenticated Container -->
+  <div id="dashboardContainer" class="container">
     <header>
       <div>
         <h1>One Bite <span>Dashboard</span></h1>
         <p>Live incoming restaurant orders</p>
       </div>
       <div class="header-actions">
-        <!-- Live Audience Counter -->
         <div class="live-counter">
           <div class="pulse-dot"></div>
           <span id="liveCount">0</span> viewing
@@ -188,31 +212,57 @@
   </div>
 
   <script>
-    // Paste your exact Supabase Credentials here (same as your index.html)
+    // 1. CHANGE THIS SECRET PASSWORD TO WHATEVER YOU WANT!
+    const SECRET_ADMIN_PASSWORD = "Noman Shaikh";
+
+    // 2. Paste your exact Supabase Credentials here (same as your index.html)
     const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co"; 
     const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
     
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let sb;
+    let globalRoom;
 
-    // --- REALTIME PRESENCE LISTENER ---
-    const globalRoom = sb.channel('onebite-live-occupancy');
-    
-    globalRoom
-      .on('presence', { event: 'sync' }, () => {
-        const presenceState = globalRoom.presenceState();
-        // Count how many unique browser instances are currently active in the channel
-        const count = Object.keys(presenceState).length;
-        document.getElementById("liveCount").innerText = count;
-      })
-      .subscribe();
+    // Password verification logic
+    function unlockDashboard() {
+      const input = document.getElementById("passKey").value;
+      const errorMsg = document.getElementById("errorMsg");
+
+      if (input === SECRET_ADMIN_PASSWORD) {
+        // Hide overlay, display data view
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("dashboardContainer").style.display = "block";
+        
+        // Initialize connections now that access is approved
+        initSupabaseAndRealtime();
+        fetchOrders();
+      } else {
+        errorMsg.style.display = "block";
+        document.getElementById("passKey").value = "";
+      }
+    }
+
+    // Initialize only after authorized
+    function initSupabaseAndRealtime() {
+      sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      globalRoom = sb.channel('onebite-live-occupancy');
+      globalRoom
+        .on('presence', { event: 'sync' }, () => {
+          const presenceState = globalRoom.presenceState();
+          const count = Object.keys(presenceState).length;
+          document.getElementById("liveCount").innerText = count;
+        })
+        .subscribe();
+    }
 
     // Money Formatter
     function money(n) {
       return "Rs " + Number(n).toLocaleString("en-PK");
     }
 
-    // Fetch orders from Supabase
+    // Fetch database entries
     async function fetchOrders() {
+      if (!sb) return;
       const container = document.getElementById("ordersContainer");
       container.innerHTML = '<div class="status-msg">Fetching latest orders...</div>';
 
@@ -268,8 +318,6 @@
         `;
       }
     }
-
-    window.addEventListener("DOMContentLoaded", fetchOrders);
   </script>
 </body>
 </html>
