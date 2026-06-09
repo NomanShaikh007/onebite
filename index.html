@@ -1,10 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>One Bite — Online Orders</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One Bite — Taste Worth Living For</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
       --bg: #0b0c10;
@@ -13,1304 +15,360 @@
       --text: #eef2ff;
       --muted: rgba(238, 242, 255, 0.72);
       --line: rgba(238, 242, 255, 0.12);
-      --brand: #ff4d4d;
-      --brand2: #ffb84d;
-      --ok: #3ddc97;
-      --shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+      --brand: #ff4d4d;   
+      --brand2: #ffb84d;  
+      --ok: #3ddc97;      
       --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      height: 100%;
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       margin: 0;
-      font-family:
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        Segoe UI,
-        Roboto,
-        Arial,
-        "Noto Sans",
-        "Apple Color Emoji",
-        "Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(900px 600px at 85% 0%, rgba(255, 77, 77, 0.22), transparent 60%),
-        radial-gradient(800px 520px at 15% 10%, rgba(255, 184, 77, 0.18), transparent 55%),
-        radial-gradient(700px 520px at 40% 100%, rgba(61, 220, 151, 0.12), transparent 55%),
-        var(--bg);
+      background: radial-gradient(circle at 10% 20%, rgba(255, 77, 77, 0.05) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(255, 184, 77, 0.04) 0%, transparent 40%),
+                  var(--bg);
+      background-attachment: fixed;
+      padding-bottom: 60px;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .app {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 18px 14px 36px;
-    }
-
-    header {
+    /* Navbar / Header */
+    nav {
       position: sticky;
       top: 0;
-      z-index: 10;
-      padding: 14px 0 16px;
-      backdrop-filter: blur(10px);
-      background: linear-gradient(to bottom, rgba(11, 12, 16, 0.92), rgba(11, 12, 16, 0.5) 75%, transparent);
-    }
-
-    .headerInner {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      width: 100%;
-    }
-
-    .brandCenter {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      width: 100%;
-      padding: 0 52px;
-    }
-
-    .welcomeTag {
-      font-size: clamp(13px, 3.2vw, 16px);
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--muted);
-      line-height: 1.2;
-    }
-
-    .restaurantName {
-      margin: 0;
-      font-size: clamp(34px, 10vw, 52px);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      line-height: 1.05;
-      text-transform: uppercase;
-      background: linear-gradient(92deg, #fff 0%, #ffe8c8 40%, var(--brand2) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .devline {
-      margin-top: 6px;
-      font-size: 11px;
-      font-weight: 400;
-      color: rgba(238, 242, 255, 0.5);
-      line-height: 1.2;
-    }
-
-    .homeBtn {
-      position: absolute;
-      top: 50%;
-      right: 0;
-      transform: translateY(-50%);
-    }
-
-    .homeBtn:hover {
-      transform: translateY(-50%);
-      border-color: rgba(255, 255, 255, 0.28);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .homeBtn:active {
-      transform: translateY(-50%);
-    }
-
-    .brand strong {
-      letter-spacing: 0.2px;
-      font-size: 16px;
-      line-height: 1.2;
-    }
-
-    .brand span {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      background: rgba(18, 20, 27, 0.7);
-      border-radius: 999px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      user-select: none;
-      transition: transform 120ms ease, border-color 120ms ease;
-    }
-
-    .pill:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .pill:active {
-      transform: translateY(0);
-    }
-
-    .pill svg {
-      width: 16px;
-      height: 16px;
-      opacity: 0.9;
-    }
-
-    .screenTitle {
-      margin: 16px 0 6px;
-      font-size: 18px;
-      letter-spacing: 0.2px;
-    }
-
-    .subtitle {
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .slider {
-      display: grid;
-      grid-auto-flow: row;
-      grid-auto-rows: max-content;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 2px 2px 12px;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-      max-height: min(72vh, 720px);
-      padding-right: 6px;
-      justify-items: center;
-    }
-
-    .slider::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    .slider::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.16);
-      border-radius: 999px;
-    }
-
-    @media (min-width: 820px) {
-      .slider {
-        max-height: min(74vh, 820px);
-      }
-    }
-
-    /* Horizontal slider (for products inside a category) */
-    .hSlider {
-      grid-auto-flow: column;
-      grid-auto-columns: min(520px, 86vw);
-      grid-template-columns: none;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      justify-items: stretch;
-      max-height: none;
-      padding-right: 2px;
-      padding-bottom: 14px;
-    }
-
-    .hSlider::-webkit-scrollbar {
-      width: auto;
-      height: 10px;
-    }
-
-    .card {
-      scroll-snap-align: start;
-      background: linear-gradient(180deg, rgba(18, 20, 27, 0.94), rgba(18, 20, 27, 0.68));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .cardBody {
-      padding: 14px 14px 12px;
-    }
-
-    .cardTitleRow {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .cardTitle {
-      font-size: 16px;
-      font-weight: 750;
-      margin: 0;
-      letter-spacing: 0.2px;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 999px;
-      font-size: 12px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.06);
-      white-space: nowrap;
-    }
-
-    .cardDesc {
-      margin: 8px 0 12px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .cardActions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      cursor: pointer;
-      user-select: none;
-      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
-      font-weight: 650;
-      font-size: 13px;
-      flex: 1;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btnPrimary {
-      border-color: rgba(255, 77, 77, 0.35);
-      background: linear-gradient(180deg, rgba(255, 77, 77, 0.95), rgba(255, 77, 77, 0.78));
-      color: #160a0a;
-    }
-
-    .btnPrimary:hover {
-      background: linear-gradient(180deg, rgba(255, 77, 77, 1), rgba(255, 77, 77, 0.86));
-    }
-
-    .heroArt {
-      width: 100%;
-      aspect-ratio: 16 / 10;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background: #161a24;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(11, 12, 16, 0.8);
       border-bottom: 1px solid var(--line);
-    }
-
-    .heroArt img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .heroArt svg {
-      width: min(220px, 70%);
-      opacity: 0.92;
-      filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.38));
-    }
-
-    /* Smaller cards for the Home "Categories" list */
-    .categoryCard {
-      width: min(520px, 92%);
-      justify-self: center;
-    }
-
-    .categoryCard .heroArt {
-      aspect-ratio: 16 / 5.1;
-      display: block;
-      position: relative;
-    }
-
-    .categoryCard .heroArt svg {
-      width: min(140px, 52%);
-    }
-
-    .categoryCard .heroArt img,
-    .productCard .heroArt img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      inset: 0;
-    }
-
-    .productCard .heroArt {
-      display: block;
-      position: relative;
-    }
-
-    .categoryCard .cardBody {
-      padding: 9px 10px 8px;
-    }
-
-    .categoryCard .cardTitle {
-      font-size: 14px;
-    }
-
-    .categoryCard .cardDesc {
-      margin: 6px 0 6px;
-      font-size: 12px;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .categoryCard .btn {
-      padding: 7px 10px;
-      font-size: 12px;
-    }
-
-    .categoryCard .chip {
-      padding: 5px 9px;
-      font-size: 11px;
-    }
-
-    .categoryCard .cardActions {
-      gap: 8px;
-    }
-
-    /* Product cards: taller image area so every item photo is clear */
-    .productCard .heroArt {
-      aspect-ratio: 4 / 3;
-      min-height: 168px;
-      display: block;
-      position: relative;
-    }
-
-    .productCard .heroArt svg {
-      width: min(140px, 52%);
-      margin: auto;
-      display: block;
-    }
-
-    .productCard .cardBody {
-      padding: 9px 10px 10px;
-    }
-
-    .productCard .cardTitle {
-      font-size: 14px;
-    }
-
-    .productCard .cardDesc {
-      margin: 6px 0 8px;
-      font-size: 12px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    @media (min-width: 820px) {
-      .grid {
-        grid-template-columns: 1.2fr 0.8fr;
-        align-items: start;
-      }
-    }
-
-    .detail {
-      background: linear-gradient(180deg, rgba(18, 20, 27, 0.94), rgba(18, 20, 27, 0.68));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .detailBody {
-      padding: 14px 14px 16px;
-    }
-
-    .priceRow {
+      padding: 15px 20px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .price {
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 0.2px;
-    }
-
-    .small {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .modalOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.52);
-      display: none;
       align-items: center;
-      justify-content: center;
-      padding: 18px 14px;
-      z-index: 999;
     }
+    .logo { font-size: 20px; font-weight: 800; color: var(--text); text-decoration: none; }
+    .logo span { color: var(--brand); }
 
-    .modalOverlay.open {
-      display: flex;
-    }
-
-    .modal {
-      width: min(560px, 100%);
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: rgba(18, 20, 27, 0.98);
-      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
-      overflow: hidden;
-    }
-
-    .modalHeader {
-      padding: 14px 14px 10px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .modalHeader strong {
-      display: block;
-      font-size: 15px;
-      letter-spacing: 0.2px;
-    }
-
-    .modalHeader span {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .iconBtn {
-      display: grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.06);
-      cursor: pointer;
-    }
-
-    .modalBody {
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 11px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      outline: none;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 78px;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: rgba(255, 77, 77, 0.55);
-      box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.16);
-    }
-
-    .formRow {
-      display: grid;
-      gap: 10px;
-    }
-
-    @media (min-width: 520px) {
-      .formRow {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      background: rgba(18, 20, 27, 0.96);
-      border: 1px solid var(--line);
+    .live-counter {
+      background: rgba(61, 220, 151, 0.1);
+      border: 1px solid rgba(61, 220, 151, 0.2);
+      color: var(--ok);
+      padding: 6px 14px;
       border-radius: 999px;
-      padding: 10px 12px;
-      color: var(--text);
-      display: none;
-      gap: 10px;
-      align-items: center;
-      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
-      z-index: 1000;
-      max-width: calc(100% - 24px);
-    }
-
-    .toast.open {
-      display: inline-flex;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: var(--ok);
-    }
-
-    .mutedBox {
-      border: 1px dashed rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: var(--radius);
-      padding: 14px;
-      color: var(--muted);
       font-size: 13px;
-      line-height: 1.45;
-    }
-
-    /* Pizza size selector */
-    .sizeSelector {
-      margin-top: 12px;
-    }
-
-    .sizeLabel {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .sizeBtns {
-      display: flex;
-      gap: 8px;
-    }
-
-    .sizeBtn {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 9px 6px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
-      cursor: pointer;
-      user-select: none;
-      transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
-    }
-
-    .sizeBtn:hover {
-      border-color: rgba(255, 255, 255, 0.22);
-      background: rgba(255, 255, 255, 0.08);
-      transform: translateY(-1px);
-    }
-
-    .sizeBtn.active {
-      border-color: var(--brand);
-      background: rgba(255, 77, 77, 0.14);
-    }
-
-    .sizeName {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .sizeInch {
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    .sizePrice {
-      font-size: 11px;
-      color: var(--brand2);
       font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
+    .live-dot {
+      width: 8px; height: 8px; background: var(--ok); border-radius: 50%;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .hero-banner {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 40px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255, 77, 77, 0.15) 0%, rgba(255, 184, 77, 0.05) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .hero-banner h1 { margin: 0 0 10px 0; font-size: 36px; }
+    .hero-banner p { margin: 0; color: var(--muted); font-size: 16px; }
+
+    /* Main Menu Layout Container */
+    .menu-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .category-section {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+    .category-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--brand2);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* Product Cards */
+    .product-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s pathways, border-color 0.3s, opacity 0.3s;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 184, 77, 0.3);
+    }
+    .product-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: var(--card2);
+    }
+    .product-info {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .product-name { font-size: 18px; font-weight: 700; margin: 0 0 8px 0; }
+    .product-desc { font-size: 13px; color: var(--muted); margin: 0 0 16px 0; line-height: 1.4; flex-grow: 1; }
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .product-price { font-size: 18px; font-weight: 700; color: var(--ok); }
+    
+    .btn-order {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-order:hover { opacity: 0.9; }
+
+    /* Found Highlight Pulse Filter style */
+    .search-highlight {
+      animation: highlightPulse 2s ease-in-out;
+      border: 2px solid var(--brand) !important;
+    }
+    @keyframes highlightPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.6); }
+      50% { transform: scale(1.02); box-shadow: 0 0 15px 5px rgba(255, 77, 77, 0.4); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+    }
+
+    .status-msg { text-align: center; padding: 60px; color: var(--muted); font-size: 16px; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-  <div class="app">
-    <header>
-      <div class="headerInner">
-        <div class="brandCenter">
-          <span class="welcomeTag">Welcome to</span>
-          <h1 class="restaurantName">One Bite</h1>
-          <div class="devline">Developed by Noman Shaikh</div>
-        </div>
 
-        <a class="pill homeBtn" href="#/">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor"
-              stroke-width="1.8" stroke-linejoin="round" />
-          </svg>
-          Home
-        </a>
-      </div>
-    </header>
+  <nav>
+    <a href="#" class="logo">ONE<span>BITE</span></a>
+    <div class="live-counter">
+      <div class="live-dot"></div>
+      <span>1 watching</span>
+    </div>
+  </nav>
 
-    <main id="root"></main>
+  <div class="hero-banner">
+    <h1>Taste Worth Living For</h1>
+    <p>Hot, fresh items delivered straight to your doorstep.</p>
   </div>
 
-  <div class="modalOverlay" id="orderModal" role="dialog" aria-modal="true" aria-label="Order">
-    <div class="modal">
-      <div class="modalHeader">
-        <div>
-          <strong id="orderTitle">Order</strong>
-          <span id="orderSubtitle">Fill details to place order</span>
-        </div>
-        <button class="iconBtn" id="closeModalBtn" type="button" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-          </svg>
-        </button>
-      </div>
-
-      <form class="modalBody" id="orderForm">
-        <div class="formRow">
-          <label>
-            Your name
-            <input required name="name" autocomplete="name" placeholder="e.g. Ali" />
-          </label>
-          <label>
-            Phone
-            <input required name="phone" autocomplete="tel" placeholder="e.g. 03xx-xxxxxxx" />
-          </label>
-        </div>
-
-        <div class="formRow">
-          <label>
-            Quantity
-            <select required name="qty">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </label>
-          <label>
-            Payment
-            <select required name="payment">
-              <option value="Cash on delivery">Cash on delivery</option>
-              <option value="Pickup">Pickup</option>
-            </select>
-          </label>
-        </div>
-
-        <label>
-          Address / Notes
-          <textarea name="address" autocomplete="street-address" placeholder="Street, area, landmark..."></textarea>
-        </label>
-
-        <button class="btn btnPrimary" type="submit">Confirm Order</button>
-        <div class="small" id="orderFinePrint">
-          Orders are saved to the restaurant database in real time.
-        </div>
-      </form>
+  <div style="max-width: 600px; margin: 25px auto; padding: 0 20px;">
+    <div style="position: relative; display: flex; align-items: center;">
+      <span style="position: absolute; left: 16px; color: rgba(238, 242, 255, 0.4); font-size: 18px;">🔍</span>
+      <input 
+        type="text" 
+        id="menuSearchInput" 
+        placeholder="Search burger, pizza, bbq tikka..." 
+        style="width: 100%; padding: 14px 14px 14px 48px; background: var(--card); border: 1px solid var(--line); border-radius: 30px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.2s;"
+        oninput="handleMenuSearch()"
+      >
+      <button 
+        id="clearSearchBtn" 
+        onclick="clearMenuSearch()" 
+        style="position: absolute; right: 16px; background: transparent; border: none; color: rgba(238, 242, 255, 0.4); font-size: 16px; cursor: pointer; display: none;"
+      >✕</button>
     </div>
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite">
-    <div class="dot"></div>
-    <div id="toastText">Saved.</div>
+  <div class="menu-container" id="menuContainer">
+    <div class="status-msg">Loading delicious menu options...</div>
   </div>
 
   <script>
-    // ── Supabase config ──────────────────────────────────────────────────────
+    // Initialize standard Supabase connection configurations
     const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
+    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- LIVE USER TRACKING ---
-    // Create a channel for tracking active users
-    const globalRoom = sb.channel('onebite-live-occupancy');
+    let categoriesData = [];
+    let itemsData = [];
 
-    globalRoom.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        // Track this user anonymously with a unique timestamp
-        await globalRoom.track({ online_at: new Date().toISOString() });
-      }
-    });
-    const money = (n) => `Rs ${Number(n).toLocaleString("en-PK")}`;
-
-    const img = (id) =>
-      `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=640&h=400&q=80`;
-
-    const wiki = (path, name, w = 640) =>
-      `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}/${w}px-${name}`;
-
-    // Pizza photos (your links)
-    const PIZZA = {
-      p1: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=640&h=400&q=80",
-      p2: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=640&h=400&q=80",
-      p3: "https://images.unsplash.com/photo-1548365328-9f547fb0953b?auto=format&fit=crop&w=640&h=400&q=80",
-      p4: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=640&h=400&q=80",
-      p5: "https://images.unsplash.com/photo-1511689660979-10d2b1aada49?auto=format&fit=crop&w=640&h=400&q=80",
-      p6: "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-      p7: "https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-      p8: "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-      p9: "https://images.pexels.com/photos/4109084/pexels-photo-4109084.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
+    window.onload = function() {
+      fetchShopData();
     };
 
-    // Pakistani food photos (rolls + tikka)
-    const PK = {
-      // Roll category
-      rollCat: "https://ticklethosetastebuds.com/wp-content/uploads/2015/06/Chicken2BParatha2BRoll.jpg",
-      chickenRoll: "https://ticklethosetastebuds.com/wp-content/uploads/2015/06/Chicken2BParatha2BRoll.jpg",
-      zingerRoll: "https://outgrilling.com/wp-content/uploads/2023/06/Chicken-Shawarma-Image-F.jpg",
-      tikkaRoll: "https://bakewithzoha.com/wp-content/uploads/2024/03/chicken-tikka-paratha-rolls-featured.jpg",
-      malaiRoll: "https://thesaltandsweet.com/wp-content/uploads/2021/03/Untitled-design-18.jpg",
-      seekhRoll: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=640&h=400&q=80",
-      // Tikka category
-      tikkaCat: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaLeg: "https://images.unsplash.com/photo-1606728035253-49e8a23146de?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaChest: "https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaBoti: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaMalai: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=640&h=400&q=80",
-    };
-
-    // ── Fallback hardcoded DB (used if Supabase is unreachable) ──────────────
-    const FALLBACK_DB = {
-      categories: [
-        {
-          id: "pizza", name: "Pizza", short: "Cheesy, hot, fresh", icon: "🍕",
-          image: PIZZA.p1,
-          items: [
-            { id: "pepperoni", name: "Pepperoni Pizza", price: 1499, desc: "Pepperoni, mozzarella, pizza sauce.", tags: ["Best seller"], image: PIZZA.p2 },
-            { id: "fajita", name: "Fajita Pizza", price: 1399, desc: "Fajita chicken, onions, capsicum, olives.", tags: ["Spicy"], image: PIZZA.p3 },
-            { id: "bbq", name: "BBQ Chicken Pizza", price: 1449, desc: "Smoky BBQ chicken, mozzarella, sauce.", tags: ["Smoky"], image: PIZZA.p4 },
-            { id: "tikka_pizza", name: "Chicken Tikka Pizza", price: 1450, desc: "Tikka chunks, onions, mozzarella.", tags: ["Desi"], image: PIZZA.p5 },
-            { id: "veggie", name: "Veggie Pizza", price: 1299, desc: "Mushroom, olives, capsicum, onion.", tags: ["Veg"], image: PIZZA.p6 },
-            { id: "supreme", name: "Supreme Pizza", price: 1599, desc: "Chicken, beef, veggies, extra cheese.", tags: ["Loaded"], image: PIZZA.p7 },
-            { id: "cheese", name: "Cheese Lovers", price: 1349, desc: "Extra mozzarella blend, creamy bite.", tags: ["Cheesy"], image: PIZZA.p8 },
-            { id: "margherita", name: "Margherita", price: 1249, desc: "Classic tomato, mozzarella, basil.", tags: ["Classic"], image: PIZZA.p9 },
-            { id: "hawaiian", name: "Hawaiian", price: 1499, desc: "Chicken and pineapple sweet-salty.", tags: ["Sweet"], image: PIZZA.p1 },
-            { id: "peri", name: "Peri Peri Pizza", price: 1499, desc: "Peri peri chicken + tangy sauce.", tags: ["Hot"], image: PIZZA.p2 },
-          ],
-        },
-        {
-          id: "burger", name: "Burger", short: "Juicy & crispy", icon: "🍔",
-          image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=640&h=400&q=80",
-          items: [
-            { id: "zinger", name: "Zinger Burger", price: 549, desc: "Crispy chicken, lettuce, mayo.", tags: ["Crispy"], image: "https://images.unsplash.com/photo-1561758033-d89a9ad46330?auto=format&fit=crop&w=640&h=400&q=80" },
-            { id: "beef", name: "Beef Burger", price: 699, desc: "Beef patty, cheese, pickles, sauce.", tags: ["Classic"], image: "https://images.unsplash.com/photo-1582196016295-f8c8bd4b3a99?auto=format&fit=crop&w=640&h=400&q=80" },
-            { id: "double", name: "Double Patty", price: 899, desc: "2 patties, cheese, signature sauce.", tags: ["Big"], image: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=640&h=400&q=80" },
-            { id: "chicken", name: "Grilled Chicken", price: 649, desc: "Grilled chicken, fresh veggies.", tags: ["Grilled"], image: "https://images.unsplash.com/photo-1610440042657-612c34d95e9f?auto=format&fit=crop&w=640&h=400&q=80" },
-            { id: "spicy", name: "Spicy Burger", price: 599, desc: "Spicy sauce, jalapeños, crispy chicken.", tags: ["Hot"], image: "https://images.unsplash.com/photo-1548340748-6af353f28e5c?auto=format&fit=crop&w=640&h=400&q=80" },
-            { id: "bbqburger", name: "BBQ Burger", price: 649, desc: "BBQ sauce, onions, cheese.", tags: ["Smoky"], image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=640&h=400&q=80" },
-          ],
-        },
-        {
-          id: "roll", name: "Roll", short: "Pakistani paratha rolls", icon: "🌯",
-          image: PK.rollCat,
-          items: [
-            { id: "chickenroll", name: "Chicken Roll", price: 299, desc: "Chicken, onions, sauces, paratha.", tags: ["Fast"], image: PK.chickenRoll },
-            { id: "zingerroll", name: "Zinger Roll", price: 399, desc: "Crispy zinger, lettuce, mayo.", tags: ["Crispy"], image: PK.zingerRoll },
-            { id: "tikkaroll", name: "Tikka Roll", price: 329, desc: "Chicken tikka, mint sauce, onions.", tags: ["Desi"], image: PK.tikkaRoll },
-            { id: "malai", name: "Malai Boti Roll", price: 369, desc: "Creamy malai boti with sauce.", tags: ["Creamy"], image: PK.malaiRoll },
-            { id: "seekh", name: "Seekh Kebab Roll", price: 349, desc: "Seekh kebab, onions, chutney.", tags: ["Kebab"], image: PK.seekhRoll },
-          ],
-        },
-        {
-          id: "tikka", name: "Tikka", short: "Pakistani charcoal tikka", icon: "🍗",
-          image: PK.tikkaCat,
-          items: [
-            { id: "leg", name: "Chicken Leg Tikka", price: 449, desc: "1 pc leg, charcoal grilled, masala.", tags: ["Grill"], image: PK.tikkaLeg },
-            { id: "chest", name: "Chicken Chest Tikka", price: 499, desc: "1 pc chest, juicy and spicy.", tags: ["Juicy"], image: PK.tikkaChest },
-            { id: "boti", name: "Chicken Boti", price: 549, desc: "Tender boti cubes with smoky flavor.", tags: ["Smoky"], image: PK.tikkaBoti },
-            { id: "malaiTikka", name: "Malai Tikka", price: 569, desc: "Creamy malai marinade, mild spice.", tags: ["Mild"], image: PK.tikkaMalai },
-          ],
-        },
-      ],
-    };
-
-    // ── Live DB (populated from Supabase or fallback) ─────────────────────────
-    let DB = { categories: [] };
-
-    async function loadMenuFromSupabase() {
+    // Load Categories and Products out of Database Stack
+    async function fetchShopData() {
       try {
-        const { data: cats, error: catErr } = await sb
-          .from("categories")
-          .select("*")
-          .order("sort_order", { ascending: true });
+        const { data: cats, error: catErr } = await sb.from("categories").select("*");
         if (catErr) throw catErr;
+        categoriesData = cats || [];
 
-        const { data: itemsData, error: itemErr } = await sb
-          .from("items")
-          .select("*")
-          .order("sort_order", { ascending: true });
+        const { data: items, error: itemErr } = await sb.from("items").select("*");
         if (itemErr) throw itemErr;
+        itemsData = items || [];
 
-        DB.categories = cats.map((c) => ({
-          id: c.id,
-          name: c.name,
-          short: c.short,
-          icon: c.icon,
-          image: c.image,
-          items: itemsData
-            .filter((i) => i.category_id === c.id)
-            .map((i) => ({
-              id: i.id,
-              name: i.name,
-              price: i.price,
-              desc: i.description,
-              tags: i.tags || [],
-              image: i.image,
-            })),
-        }));
-
-        console.log("✅ Menu loaded from Supabase:", DB.categories.length, "categories");
+        renderMenuBoard();
       } catch (err) {
-        console.warn("⚠️ Supabase menu load failed, using fallback:", err.message);
-        DB = FALLBACK_DB;
-        toast("Offline mode — showing cached menu");
+        document.getElementById("menuContainer").innerHTML = `<div class="status-msg" style="color:var(--brand)">Error loading menu: ${err.message}</div>`;
       }
     }
 
-    const findCategory = (catId) => DB.categories.find((c) => c.id === catId);
-    const findItem = (catId, itemId) => {
-      const c = findCategory(catId);
-      return c?.items?.find((i) => i.id === itemId);
-    };
-
-    const iconSVG = (emoji) => {
-      const label = String(emoji || "").trim() || "🍽️";
-      return `
-          <svg viewBox="0 0 320 220" role="img" aria-label="${label}">
-            <defs>
-              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="rgba(255,77,77,0.95)" />
-                <stop offset="55%" stop-color="rgba(255,184,77,0.88)" />
-                <stop offset="100%" stop-color="rgba(61,220,151,0.72)" />
-              </linearGradient>
-            </defs>
-            <rect x="22" y="22" width="276" height="176" rx="32" fill="url(#g)" opacity="0.95"></rect>
-            <text x="160" y="132" text-anchor="middle" font-size="84" font-family="system-ui,Segoe UI,Arial">${label}</text>
-          </svg>`;
-    };
-
-    const foodImg = (src, alt, fallbackEmoji, fallbackSrc) => {
-      const url = src || fallbackSrc;
-      if (!url) return iconSVG(fallbackEmoji);
-      const safeAlt = String(alt || "Food").replace(/"/g, "&quot;");
-      const safeFallback = fallbackSrc ? String(fallbackSrc).replace(/"/g, "&quot;") : "";
-      return `<img src="${url}" alt="${safeAlt}" loading="lazy" decoding="async" referrerpolicy="no-referrer"${safeFallback ? ` data-fallback="${safeFallback}" onerror="if(this.dataset.fallback&&!this.dataset.tried){this.dataset.tried=1;this.src=this.dataset.fallback}"` : ""
-        } />`;
-    };
-
-    const el = (html) => {
-      const t = document.createElement("template");
-      t.innerHTML = html.trim();
-      return t.content.firstElementChild;
-    };
-
-    const toast = (msg) => {
-      const t = document.getElementById("toast");
-      const txt = document.getElementById("toastText");
-      txt.textContent = msg;
-      t.classList.add("open");
-      window.clearTimeout(toast._timer);
-      toast._timer = window.setTimeout(() => t.classList.remove("open"), 2600);
-    };
-
-    const setHeader = ({ title, subtitle }) => {
-      const t = document.getElementById("headerTitle");
-      const s = document.getElementById("headerSubtitle");
-      if (t) t.textContent = title;
-      if (s) s.textContent = subtitle;
-    };
-
-    const routes = {
-      home() {
-        setHeader({ title: "Fast Food Orders", subtitle: "Swipe categories, then tap to view items." });
-        const root = document.getElementById("root");
-        root.innerHTML = "";
-
-        const header = el(`
-            <section>
-              <h2 class="screenTitle">Categories</h2>
-              <p class="subtitle">Choose a category (Pizza, Burger, Roll, Tikka).</p>
-            </section>
-          `);
-
-        const slider = el(`<section class="slider" aria-label="Categories slider"></section>`);
-        for (const c of DB.categories) {
-          const card = el(`
-              <a class="card categoryCard" href="#/c/${encodeURIComponent(c.id)}">
-                <div class="heroArt">${foodImg(c.image, c.name, c.icon)}</div>
-                <div class="cardBody">
-                  <div class="cardTitleRow">
-                    <h3 class="cardTitle">${c.name}</h3>
-                    <span class="chip">${c.items.length} items</span>
-                  </div>
-                  <p class="cardDesc">${c.short}</p>
-                  <div class="cardActions">
-                    <span class="btn btnPrimary">Open</span>
-                    <span class="btn">Swipe →</span>
-                  </div>
-                </div>
-              </a>
-            `);
-          slider.appendChild(card);
-        }
-
-        root.appendChild(header);
-        root.appendChild(slider);
-      },
-
-      category(catId) {
-        const c = findCategory(catId);
-        if (!c) return routes.notFound();
-
-        setHeader({ title: c.name, subtitle: "Swipe items, tap any item for details." });
-        const root = document.getElementById("root");
-        root.innerHTML = "";
-
-        const header = el(`
-            <section>
-              <h2 class="screenTitle">${c.name} menu</h2>
-              <p class="subtitle">${c.items.length} items available. Swipe left/right.</p>
-            </section>
-          `);
-
-        const slider = el(`<section class="slider hSlider" aria-label="${c.name} items slider"></section>`);
-        for (const item of c.items) {
-          const tag = (item.tags && item.tags[0]) ? `<span class="chip">${item.tags[0]}</span>` : `<span class="chip">Fresh</span>`;
-          const card = el(`
-              <a class="card productCard" href="#/c/${encodeURIComponent(c.id)}/i/${encodeURIComponent(item.id)}">
-                <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
-                <div class="cardBody">
-                  <div class="cardTitleRow">
-                    <h3 class="cardTitle">${item.name}</h3>
-                    ${tag}
-                  </div>
-                  <p class="cardDesc">${item.desc}</p>
-                  <div class="priceRow">
-                    <div class="price">${money(item.price)}</div>
-                    <span class="btn btnPrimary">View</span>
-                  </div>
-                </div>
-              </a>
-            `);
-          slider.appendChild(card);
-        }
-
-        root.appendChild(header);
-        root.appendChild(slider);
-      },
-
-      item(catId, itemId) {
-        const c = findCategory(catId);
-        const item = findItem(catId, itemId);
-        if (!c || !item) return routes.notFound();
-
-        const isPizza = catId === "pizza";
-        const SIZES = [
-          { id: "small", label: "Small", inch: '7"', mult: 0.80 },
-          { id: "medium", label: "Medium", inch: '10"', mult: 1.00 },
-          { id: "large", label: "Large", inch: '14"', mult: 1.28 },
-        ];
-        let selectedSize = "medium";
-        const basePrice = item.price;
-        const getPrice = () => isPizza
-          ? Math.round(basePrice * SIZES.find(s => s.id === selectedSize).mult)
-          : basePrice;
-
-        setHeader({ title: item.name, subtitle: `${c.name} • ${money(getPrice())}` });
-        const root = document.getElementById("root");
-        root.innerHTML = "";
-
-        const wrap = el(`<section class="grid"></section>`);
-
-        const sizeSelectorHTML = isPizza ? `
-            <div class="sizeSelector">
-              <span class="sizeLabel">Size</span>
-              <div class="sizeBtns">
-                ${SIZES.map(s => `
-                  <button class="sizeBtn${s.id === selectedSize ? ' active' : ''}" data-size="${s.id}" type="button">
-                    <span class="sizeName">${s.label}</span>
-                    <span class="sizeInch">${s.inch}</span>
-                    <span class="sizePrice">${money(Math.round(basePrice * s.mult))}</span>
-                  </button>
-                `).join('')}
-              </div>
-            </div>
-          ` : '';
-
-        const left = el(`
-            <div class="detail">
-              <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
-              <div class="detailBody">
-                <div class="cardTitleRow">
-                  <h2 class="cardTitle" style="font-size:18px;margin:0">${item.name}</h2>
-                  <span class="chip">${c.name}</span>
-                </div>
-                <p class="cardDesc">${item.desc}</p>
-                ${sizeSelectorHTML}
-                <div class="priceRow">
-                  <div>
-                    <div class="price" id="detailPrice">${money(getPrice())}</div>
-                    <div class="small">Estimated prep time: 15–25 mins</div>
-                  </div>
-                  <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>
-                </div>
-              </div>
-            </div>
-          `);
-
-        const right = el(`
-            <div class="mutedBox">
-              <div style="display:grid;gap:8px">
-                <div><strong style="color:var(--text)">How it works</strong></div>
-                <div>Tap <strong style="color:var(--text)">Order Now</strong>, enter name + phone + address, and the order saves as “Recent”.</div>
-                <div class="small">Next step: connect to WhatsApp / admin dashboard for real restaurant orders.</div>
-              </div>
-            </div>
-          `);
-
-        wrap.appendChild(left);
-        wrap.appendChild(right);
-        root.appendChild(wrap);
-
-        if (isPizza) {
-          left.querySelectorAll('.sizeBtn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              selectedSize = btn.dataset.size;
-              left.querySelectorAll('.sizeBtn').forEach(b => b.classList.remove('active'));
-              btn.classList.add('active');
-              const newPrice = getPrice();
-              document.getElementById('detailPrice').textContent = money(newPrice);
-              setHeader({ title: item.name, subtitle: `${c.name} • ${money(newPrice)}` });
-            });
-          });
-        }
-
-        const orderBtn = document.getElementById("orderNowBtn");
-        orderBtn.addEventListener("click", () => openOrderModal({
-          catId, itemId,
-          size: isPizza ? selectedSize : null,
-          finalPrice: getPrice(),
-        }));
-      },
-
-      notFound() {
-        setHeader({ title: "Not found", subtitle: "This page does not exist." });
-        const root = document.getElementById("root");
-        root.innerHTML = "";
-        root.appendChild(
-          el(`
-              <section class="mutedBox">
-                Page not found. Go back to <a href="#/" style="text-decoration:underline">Home</a>.
-              </section>
-            `),
-        );
-      },
-    };
-
-    function parseRoute() {
-      const raw = (location.hash || "#/").slice(1);
-      const parts = raw.split("/").filter(Boolean).map((p) => decodeURIComponent(p));
-      // Supported:
-      // /                     -> home
-      // /c/:cat               -> category
-      // /c/:cat/i/:item       -> item
-      if (parts.length === 0) return { name: "home" };
-      if (parts[0] === "c" && parts.length === 2) return { name: "category", cat: parts[1] };
-      if (parts[0] === "c" && parts[2] === "i" && parts.length === 4) return { name: "item", cat: parts[1], item: parts[3] };
-      return { name: "notFound" };
-    }
-
-    function render() {
-      const r = parseRoute();
-      if (r.name === "home") return routes.home();
-      if (r.name === "category") return routes.category(r.cat);
-      if (r.name === "item") return routes.item(r.cat, r.item);
-      return routes.notFound();
-    }
-
-    const modal = document.getElementById("orderModal");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const orderForm = document.getElementById("orderForm");
-
-    let currentOrderTarget = null; // {catId, itemId, size, finalPrice}
-
-    function openOrderModal({ catId, itemId, size = null, finalPrice = null }) {
-      const c = findCategory(catId);
-      const item = findItem(catId, itemId);
-      if (!c || !item) return;
-      currentOrderTarget = { catId, itemId, size, finalPrice: finalPrice ?? item.price };
-
-      const sizeLabel = size ? ` • ${size.charAt(0).toUpperCase() + size.slice(1)}` : '';
-      document.getElementById("orderTitle").textContent = `Order: ${item.name}${sizeLabel}`;
-      document.getElementById("orderSubtitle").textContent = `${c.name} • ${money(currentOrderTarget.finalPrice)}`;
-
-      modal.classList.add("open");
-      const nameInput = orderForm.querySelector('input[name="name"]');
-      setTimeout(() => nameInput?.focus(), 0);
-    }
-
-    function closeOrderModal() {
-      modal.classList.remove("open");
-      currentOrderTarget = null;
-    }
-
-    closeModalBtn.addEventListener("click", closeOrderModal);
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeOrderModal();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeOrderModal();
-    });
-
-    orderForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!currentOrderTarget) return;
-
-      const submitBtn = orderForm.querySelector('[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Placing order…";
-
-      const { catId, itemId, size, finalPrice } = currentOrderTarget;
-      const c = findCategory(catId);
-      const item = findItem(catId, itemId);
-      if (!c || !item) { submitBtn.disabled = false; submitBtn.textContent = "Confirm Order"; return; }
-
-      const fd = new FormData(orderForm);
-      const qty = Number(fd.get("qty") || 1);
-      const unitPrice = finalPrice ?? item.price;
-
-      const orderPayload = {
-        customer_name: String(fd.get("name") || ""),
-        customer_phone: String(fd.get("phone") || ""),
-        customer_address: String(fd.get("address") || ""),
-        payment_method: String(fd.get("payment") || "Cash on delivery"),
-        qty,
-        category_id: c.id,
-        category_name: c.name,
-        item_id: item.id,
-        item_name: item.name,
-        size: size || null,
-        unit_price: unitPrice,
-        total: unitPrice * qty,
-      };
-
-      // Save to Supabase
-      let savedToCloud = false;
-      try {
-        const { error } = await sb.from("orders").insert([orderPayload]);
-        if (error) throw error;
-        savedToCloud = true;
-      } catch (err) {
-        console.warn("Supabase order save failed:", err.message);
+    // Beautiful nested rendering matching items securely to parent Category blocks
+    function renderMenuBoard() {
+      const container = document.getElementById("menuContainer");
+      if (categoriesData.length === 0) {
+        container.innerHTML = '<div class="status-msg">No active items found in menu database loop.</div>';
+        return;
       }
 
-      // Always save locally as backup
-      localStorage.setItem("ff_recent_order", JSON.stringify({
-        ...orderPayload,
-        id: crypto.randomUUID?.() || String(Date.now()),
-        createdAt: new Date().toISOString(),
-      }));
+      container.innerHTML = "";
 
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Confirm Order";
-      orderForm.reset();
-      closeOrderModal();
+      categoriesData.forEach(cat => {
+        // Filter elements corresponding down cleanly into targeted array mappings
+        const subItems = itemsData.filter(item => item.category_id === cat.id || item.category_id == cat.name);
+        
+        if (subItems.length === 0) return; // Skip categories with no current products
 
-      if (savedToCloud) {
-        toast(`✅ Order placed: ${item.name} • ${money(unitPrice * qty)}`);
+        // The custom 'data-category-name' tag allows the search engine to track text matches to scroll down
+        const section = document.createElement("div");
+        section.className = "category-section";
+        section.setAttribute("data-category-name", cat.name.toLowerCase());
+        
+        let sectionHtml = `
+          <div class="category-title">
+            <span>${cat.icon || '🍔'}</span>
+            <span>${cat.name}</span>
+          </div>
+          <div class="products-grid">
+        `;
+
+        subItems.forEach(item => {
+          sectionHtml += `
+            <div class="product-card">
+              ${item.image ? `<img src="${item.image}" class="product-img" alt="${item.name}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--muted)">📸 No Image</div>`}
+              <div class="product-info">
+                <h3 class="product-name">${item.name}</h3>
+                <p class="product-desc">${item.description || 'No ingredients information provided.'}</p>
+                <div class="product-footer">
+                  <span class="product-price">Rs ${Number(item.price).toLocaleString()}</span>
+                  <button class="btn-order" onclick="openOrderModal('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})">Order Now</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        sectionHtml += `</div>`;
+        section.innerHTML = sectionHtml;
+        container.appendChild(section);
+      });
+    }
+
+    /* ── SEARCH BAR REAL-TIME ROUTINE ── */
+    function handleMenuSearch() {
+      const query = document.getElementById('menuSearchInput').value.toLowerCase().trim();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      
+      if (query.length > 0) {
+        clearBtn.style.display = 'block';
       } else {
-        toast(`⚠️ Saved locally (offline): ${item.name} • ${money(unitPrice * qty)}`);
+        clearBtn.style.display = 'none';
+        resetSearchFilters();
+        return;
       }
-    });
 
-    window.addEventListener("hashchange", render);
+      // 1. CATEGORY SCROLL TRIGGER (e.g., Typing "burger")
+      const sections = document.querySelectorAll('.category-section');
+      let categoryMatchFound = false;
 
-    // ── Boot: load menu then render ──────────────────────────────────────────
-    (async () => {
-      // Show loading state
-      const root = document.getElementById("root");
-      root.innerHTML = `<section class="mutedBox" style="text-align:center;padding:32px 14px;">
-          <div style="font-size:28px;margin-bottom:10px">🍽️</div>
-          <div style="font-size:14px;color:var(--muted)">Loading menu…</div>
-        </section>`;
+      sections.forEach(section => {
+        const targetCategoryAttr = section.getAttribute('data-category-name') || '';
+        if (targetCategoryAttr.includes(query) && !categoryMatchFound) {
+          section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          categoryMatchFound = true; // Stop looking after the first matched category
+        }
+      });
 
-      await loadMenuFromSupabase();
-      render();
-    })();
+      // 2. PRODUCT INDIVIDUAL ISOLATION AND HIGHLIGHTING (e.g., Typing "bbq tikka")
+      const productCards = document.querySelectorAll('.product-card');
+      let firstMatchedProductCard = null;
+
+      productCards.forEach(card => {
+        const textContentInsideCard = card.innerText.toLowerCase();
+        
+        if (textContentInsideCard.includes(query)) {
+          card.style.display = ''; // Make sure card stays completely visible
+          card.style.opacity = '1';
+          
+          if (!firstMatchedProductCard) {
+            firstMatchedProductCard = card;
+          }
+        } else {
+          // Dim elements that are not part of user focus constraints
+          card.style.opacity = '0.15';
+        }
+      });
+
+      // If we didn't find a category match, but found a specific item, scroll directly to it
+      if (firstMatchedProductCard && !categoryMatchFound) {
+        document.querySelectorAll('.product-card').forEach(c => c.classList.remove('search-highlight'));
+        
+        firstMatchedProductCard.classList.add('search-highlight');
+        firstMatchedProductCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // Reset layout board structure
+    function resetSearchFilters() {
+      const productCards = document.querySelectorAll('.product-card');
+      productCards.forEach(card => {
+        card.style.display = '';
+        card.style.opacity = '1';
+        card.classList.remove('search-highlight');
+      });
+    }
+
+    function clearMenuSearch() {
+      document.getElementById('menuSearchInput').value = '';
+      document.getElementById('clearSearchBtn').style.display = 'none';
+      resetSearchFilters();
+    }
+
+    // Placeholder function for your existing order modal integration
+    function openOrderModal(id, name, price) {
+      alert("Order prompt for " + name + " (Rs " + price + ") will display your checkout forms.");
+    }
   </script>
 </body>
-
 </html>
