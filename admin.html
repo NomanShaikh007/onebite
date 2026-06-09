@@ -120,6 +120,14 @@
     .chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--line); }
     .order-num { font-family: monospace; background: rgba(255, 184, 77, 0.15); color: var(--brand2); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 13px; }
     .status-msg { text-align: center; padding: 40px; color: var(--muted); }
+    
+    /* Hidden Iframe for silent strict-size printing */
+    #receiptPrintFrame {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border: 0;
+    }
   </style>
 </head>
 <body>
@@ -256,6 +264,8 @@
     </div>
   </div>
 
+  <iframe id="receiptPrintFrame"></iframe>
+
   <script>
     const MASTER_SECRET = "onebite2026"; 
 
@@ -312,7 +322,6 @@
         }
         container.innerHTML = "";
         orders.forEach(order => {
-          // Create short readable order string from row ID
           const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
           
           const card = document.createElement("div");
@@ -356,78 +365,75 @@
       
       const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
       const dateStr = order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : new Date().toLocaleString("en-PK");
+      const sizeLabel = order.size ? '<br><small>(' + order.size.toUpperCase() + ')</small>' : '';
       
-      // Build a minimalist receipt document for standard printing
-      const printWindow = window.open('', '_blank', 'width=400,height=600');
-      printWindow.document.write(`
-        <html>
-        <head>
-          <title>Receipt #${orderNum}</title>
-          <style>
-            body { font-family: 'Courier New', Courier, monospace; color: #000; background: #fff; padding: 20px; font-size: 14px; line-height: 1.4; }
-            .center { text-align: center; }
-            .bold { font-weight: bold; }
-            .divider { border-top: 1px dashed #000; margin: 10px 0; }
-            table { width: 100%; border-collapse: collapse; }
-            .right { text-align: right; }
-            .totals { font-size: 16px; font-weight: bold; margin-top: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="center">
-            <h2 style="margin:0 0 5px 0;">ONE BITE</h2>
-            <p style="margin:0 0 15px 0; font-size:12px;">Taste Worth Living For</p>
-            <p class="bold">ORDER ID: #${orderNum}</p>
-            <p style="font-size:12px;">${dateStr}</p>
-          </div>
-          
-          <div class="divider"></div>
-          
-          <p><span class="bold">Customer:</span> ${order.customer_name || 'Walk-in'}</p>
-          <p><span class="bold">Phone:</span> ${order.customer_phone || '—'}</p>
-          <p><span class="bold">Address:</span> ${order.customer_address || 'Delivery'}</p>
-          
-          <div class="divider"></div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th align="left">Item Description</th>
-                <th class="right">Qty</th>
-                <th class="right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  ${order.item_name} 
-                  ${order.size ? `(${order.size.toUpperCase()})` : ''}
-                </td>
-                <td class="right">${order.qty || 1}</td>
-                <td class="right">Rs ${Number(order.total).toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <div class="divider"></div>
-          
-          <div class="right totals">
-            NET PAYABLE: Rs ${Number(order.total).toLocaleString()}
-          </div>
-          
-          <p class="center" style="margin-top:30px; font-size:11px;">Payment Mode: ${order.payment_method || 'COD'}</p>
-          <p class="center" style="font-size:12px; margin-top:10px;">*** Thank you for your order! ***</p>
-          
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
-            };
-          <\/script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+      // Select the hidden iframe element
+      const iframe = document.getElementById('receiptPrintFrame');
+      const fDoc = iframe.contentWindow || iframe.contentDocument;
+      const iframeDoc = fDoc.document ? fDoc.document : fDoc;
+      
+      let htmlContent = '<html><head><title>Receipt #' + orderNum + '</title>';
+      htmlContent += '<style>';
+      // STRICT PAGE DEFINITIONS TO DEFEAT BROWSER OVERRIDES
+      htmlContent += '@page { size: 58mm auto !important; margin: 0mm !important; }';
+      htmlContent += '@media print { ';
+      htmlContent += '  html, body { width: 58mm !important; max-width: 58mm !important; margin: 0px !important; padding: 2mm !important; background: #fff !important; color: #000 !important; }';
+      htmlContent += '  .no-print { display: none !important; }';
+      htmlContent += '}';
+      htmlContent += 'body { font-family: "Courier New", Courier, monospace; font-size: 11px; line-height: 1.2; width: 58mm; box-sizing: border-box; background: #fff; color: #000; margin: 0; padding: 5px; }';
+      htmlContent += '.center { text-align: center; } .bold { font-weight: bold; } .divider { border-top: 1px dashed #000; margin: 5px 0; }';
+      htmlContent += 'table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 11px; } .right { text-align: right; }';
+      htmlContent += '.totals { font-size: 12px; font-weight: bold; margin-top: 6px; text-align: right; } .info-block p { margin: 2px 0; word-wrap: break-word; }';
+      htmlContent += '</style></head><body>';
+      
+      htmlContent += '<div class="center">';
+      htmlContent += '<h3 style="margin: 0 0 1px 0; font-size: 14px;">ONE BITE</h3>';
+      htmlContent += '<p style="margin: 0 0 4px 0; font-size: 9px; letter-spacing: 0.5px;">Taste Worth Living For</p>';
+      htmlContent += '<p class="bold" style="font-size: 11px; margin: 3px 0;">ORDER: #' + orderNum + '</p>';
+      htmlContent += '<p style="font-size: 9px; margin: 0;">' + dateStr + '</p>';
+      htmlContent += '</div>';
+      
+      htmlContent += '<div class="divider"></div>';
+      
+      htmlContent += '<div class="info-block">';
+      htmlContent += '<p><span class="bold">Cust:</span> ' + (order.customer_name || "Walk-in") + '</p>';
+      htmlContent += '<p><span class="bold">Cell:</span> ' + (order.customer_phone || "—") + '</p>';
+      htmlContent += '<p><span class="bold">Addr:</span> ' + (order.customer_address || "Delivery") + '</p>';
+      htmlContent += '</div>';
+      
+      htmlContent += '<div class="divider"></div>';
+      
+      htmlContent += '<table><thead><tr>';
+      htmlContent += '<th align="left" style="font-size: 10px; border-bottom: 1px solid #000;">Item</th>';
+      htmlContent += '<th class="right" style="font-size: 10px; width: 20px; border-bottom: 1px solid #000;">Qty</th>';
+      htmlContent += '<th class="right" style="font-size: 10px; width: 60px; border-bottom: 1px solid #000;">Total</th>';
+      htmlContent += '</tr></thead><tbody><tr>';
+      htmlContent += '<td style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + order.item_name + sizeLabel + '</td>';
+      htmlContent += '<td class="right" style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + (order.qty || 1) + '</td>';
+      htmlContent += '<td class="right" style="font-size: 10px; padding: 3px 0; vertical-align: top;">Rs ' + Number(order.total).toLocaleString() + '</td>';
+      htmlContent += '</tr></tbody></table>';
+      
+      htmlContent += '<div class="divider"></div>';
+      
+      htmlContent += '<div class="totals">TOTAL: Rs ' + Number(order.total).toLocaleString() + '</div>';
+      
+      htmlContent += '<div class="center" style="margin-top: 12px; padding-bottom: 10px;">';
+      htmlContent += '<p style="margin: 0; font-size: 9px;">Payment: ' + (order.payment_method || "COD") + '</p>';
+      htmlContent += '<p style="margin: 2px 0 0 0; font-size: 9px; font-weight: bold;">*** Thank You! ***</p>';
+      htmlContent += '</div>';
+      
+      htmlContent += '</body></html>';
+      
+      // Write to isolated frame canvas and invoke instant print execution
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+      
+      // Triggers system driver layer without popups hijacking layout styles
+      setTimeout(function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      }, 250);
     }
 
     async function deleteOrder(id) {
