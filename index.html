@@ -758,6 +758,30 @@
       line-height: 1.45;
     }
 
+    /* ABOUT DATA TABLE ALIGNMENT style layout */
+    .aboutInfoTable {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 8px 16px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(238, 242, 255, 0.08);
+    }
+
+    .aboutKey {
+      font-weight: 700;
+      color: rgba(238, 242, 255, 0.5);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+
+    .aboutVal {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 13px;
+    }
+
     .sizeSelector {
       margin-top: 12px;
     }
@@ -1289,6 +1313,18 @@
           <section class="mutedBox" style="display:grid;gap:12px;">
             <h2 style="margin:0;color:var(--text)">Our Story</h2>
             <p style="margin:0;line-height:1.5;">Welcome to One Bite! We serve the freshest pizza, crispy burgers, and mouthwatering traditional charcoal tikka and paratha rolls.</p>
+            
+            <div class="aboutInfoTable">
+              <div class="aboutKey">Date of Opening</div>
+              <div class="aboutVal">10 October 2022</div>
+              
+              <div class="aboutKey">Founder</div>
+              <div class="aboutVal">Ghulam Sarwar Shaikh</div>
+              
+              <div class="aboutKey">Address</div>
+              <div class="aboutVal">Tanki Road Jacobabad.</div>
+            </div>
+
             <a href="#/" class="btn btnPrimary" style="max-width:140px;margin-top:10px;">View Menu</a>
           </section>`;
       },
