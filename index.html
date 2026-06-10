@@ -117,56 +117,23 @@
       line-height: 1.2;
     }
 
-   .homeBtn {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: auto;
-  transform: translateY(-50%) !important;
-}
+    .homeBtn {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+    }
 
-.homeBtn:hover {
-  transform: translateY(-50%) !important;
-  border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.1);
-}
+    .homeBtn:hover {
+      transform: translateY(-50%);
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.1);
+    }
 
-.homeBtn:active {
-  transform: translateY(-50%) !important;
-}
-If you still can't find it
+    .homeBtn:active {
+      transform: translateY(-50%);
+    }
 
-Press:
-
-Ctrl + F
-
-and search for:
-
-.homeBtn {
-
-It is near the top of your CSS section.
-
-Even Better Fix
-
-To completely remove the jumping effect from the Home button, also add this code below the block above:
-
-.homeBtn.pill:hover {
-  transform: translateY(-50%) !important;
-}
-
-.homeBtn.pill:active {
-  transform: translateY(-50%) !important;
-}
-
-After saving:
-
-✅ Home button moves to the left side
-✅ No up/down glitch
-✅ Hover effect remains smooth
-✅ Click effect remains smooth
-
-If you want, I can also 
-show you how to make the button stay hidden on the homepage and only appear when viewing categories/products (which usually looks cleaner).
     .brand strong {
       letter-spacing: 0.2px;
       font-size: 16px;
@@ -195,7 +162,7 @@ show you how to make the button stay hidden on the homepage and only appear when
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       cursor: pointer;
       user-select: none;
-      transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
+      transition: transform 120ms ease, border-color 120ms ease;
     }
 
     .pill:hover {
