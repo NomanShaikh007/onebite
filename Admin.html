@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One Bite — Admin Dashboard</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card: #12141b;
+      --card2: #161a24;
+      --text: #eef2ff;
+      --muted: rgba(238, 242, 255, 0.72);
+      --line: rgba(238, 242, 255, 0.12);
+      --brand: #ff4d4d;   
+      --brand2: #ffb84d;  
+      --ok: #3ddc97;      
+      --radius: 18px;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 10% 20%, rgba(255, 77, 77, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(255, 184, 77, 0.06) 0%, transparent 40%),
+                  var(--bg);
+      background-attachment: fixed;
+      padding: 20px;
+    }
+
+    /* Lock Screen Overlay */
+    #lockScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 9999; display: flex; justify-content: center; align-items: center;
+    }
+    .lock-box {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 40px; text-align: center; max-width: 360px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: none; 
+    }
+
+    header {
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: rgba(18, 20, 27, 0.6); border: 1px solid var(--line);
+      padding: 20px; border-radius: var(--radius); margin-bottom: 24px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+    }
+    h1 { margin: 0; font-size: 24px; color: var(--text); }
+    h1 span { color: var(--brand); }
+    header p { margin: 4px 0 0 0; font-size: 14px; color: var(--muted); }
+
+    .live-viewing {
+      background: rgba(61, 220, 151, 0.1);
+      border: 1px solid rgba(61, 220, 151, 0.2);
+      color: var(--ok);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-dot {
+      width: 8px; height: 8px; background: var(--ok); border-radius: 50%;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    .nav-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+    .tab-btn {
+      background: transparent; border: none; color: var(--muted); padding: 10px 20px;
+      font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 10px; transition: all 0.2s;
+    }
+    .tab-btn.active { background: var(--card); color: var(--brand2); border: 1px solid var(--line); }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    .admin-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .section-title { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 16px; color: var(--brand2); }
+    
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; background: var(--card2); border: 1px solid var(--line);
+      border-radius: 10px; color: var(--text); font-size: 14px; box-sizing: border-box; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--brand2); }
+
+    .btn {
+      padding: 10px 18px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-brand { background: var(--brand); color: #fff; }
+    .btn-ok { background: var(--ok); color: #0b0c10; }
+    .btn-muted { background: var(--card2); border: 1px solid var(--line); color: var(--text); }
+    .btn-print { background: #3182ce; color: white; padding: 4px 10px; font-size: 12px; }
+    .btn-danger { background: #e53e3e; color: white; padding: 4px 10px; font-size: 12px; }
+
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { padding: 12px; border-bottom: 2px solid var(--line); color: var(--muted); font-weight: 600; }
+    td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,0.01); }
+
+    .order-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--line); }
+    .order-num { font-family: monospace; background: rgba(255, 184, 77, 0.15); color: var(--brand2); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+    .status-msg { text-align: center; padding: 40px; color: var(--muted); }
+    
+    /* Hidden Iframe for silent strict-size printing */
+    #receiptPrintFrame {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="lockScreen">
+    <div class="lock-box">
+      <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Enter administrative access key</p>
+      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === 'Enter') verifyGate()">
+      <button class="btn btn-brand" onclick="verifyGate()" style="width:100%;">Access Dashboard</button>
+    </div>
+  </div>
+
+  <div class="container" id="dashboardContainer">
+    <header>
+      <div>
+        <h1>One Bite <span>Dashboard</span></h1>
+        <p>Live Back-office Control Center</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="live-viewing" id="liveViewingBadge">
+          <div class="live-dot"></div>
+          <span id="liveViewingCount">— viewing</span>
+        </div>
+        <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
+      </div>
+    </header>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
+      <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
+      <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
+    </div>
+
+    <div id="orders-tab" class="view-panel active">
+      <div id="ordersContainer"></div>
+    </div>
+
+    <div id="menu-tab" class="view-panel">
+      <div class="admin-card">
+        <h3 class="section-title" id="itemFormTitle">Add New Product Item</h3>
+        <form id="itemForm" onsubmit="saveItem(event)">
+          <input type="hidden" id="editingItemId">
+          <div class="form-grid">
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Product Name</label>
+              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required>
+            </div>
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Category Assignment</label>
+              <select id="itemCategory" required><option value="">Select Category</option></select>
+            </div>
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Base Price (Rs)</label>
+              <input type="number" id="itemPrice" placeholder="1499" required>
+            </div>
+          </div>
+          <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Image URL</label>
+              <input type="url" id="itemImage" placeholder="https://images.unsplash.com/...">
+            </div>
+          </div>
+          <div style="margin-bottom: 14px;">
+            <label style="font-size:12px; color:var(--muted)">Description</label>
+            <textarea id="itemDesc" rows="2" placeholder="Describe ingredients..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-ok" id="itemSubmitBtn">✨ Save Product</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3 class="section-title">Current Inventory Items</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Description</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="itemsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="categories-tab" class="view-panel">
+      <div class="admin-card">
+        <h3 class="section-title" id="catFormTitle">Create New Menu Category</h3>
+        <form id="categoryForm" onsubmit="saveCategory(event)">
+          <input type="hidden" id="editingCatId">
+          <div class="form-grid">
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Category Name</label>
+              <input type="text" id="catName" placeholder="e.g., Pizza" required>
+            </div>
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Short Tagline</label>
+              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required>
+            </div>
+            <div>
+              <label style="font-size:12px; color:var(--muted)">Icon Emoji</label>
+              <input type="text" id="catIcon" placeholder="🍕" required>
+            </div>
+          </div>
+          <div style="margin-bottom: 14px;">
+            <label style="font-size:12px; color:var(--muted)">Category Image URL</label>
+            <input type="url" id="catImage" placeholder="https://images.unsplash.com/...">
+          </div>
+          <button type="submit" class="btn btn-ok" id="catSubmitBtn">📁 Save Category</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3 class="section-title">Active Categories</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Icon</th>
+                <th>Category Name</th>
+                <th>Tagline</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="categoriesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <iframe id="receiptPrintFrame"></iframe>
+
+  <script>
+    const MASTER_SECRET = "onebite2026"; 
+
+    function verifyGate() {
+      const input = document.getElementById("passKey").value;
+      if (input === MASTER_SECRET) {
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("dashboardContainer").style.display = "block";
+        loadAllData();
+      } else {
+        alert("Access Denied: Invalid Admin Key");
+        document.getElementById("passKey").value = "";
+      }
+    }
+
+    const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
+    // The main site joins 'onebite-live-occupancy' and calls .track() for each visitor.
+    // The admin ONLY listens (no .track()) so it doesn't inflate the count.
+    const viewerCountEl = document.getElementById('liveViewingCount');
+    const viewerBadgeEl = document.getElementById('liveViewingBadge');
+
+    function updateViewerBadge(count) {
+      viewerCountEl.textContent = count === 1 ? '1 viewing' : `${count} viewing`;
+      // Green when people online, dimmed when 0
+      viewerBadgeEl.style.opacity = count > 0 ? '1' : '0.5';
+    }
+
+    const presenceChannel = sb.channel('onebite-live-occupancy');
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        // Each key in state = one connected visitor tab
+        const count = Object.keys(state).length;
+        updateViewerBadge(count);
+      })
+      .on('presence', { event: 'join' }, () => {
+        const state = presenceChannel.presenceState();
+        updateViewerBadge(Object.keys(state).length);
+      })
+      .on('presence', { event: 'leave' }, () => {
+        const state = presenceChannel.presenceState();
+        updateViewerBadge(Object.keys(state).length);
+      })
+      .subscribe();
+    // ── END LIVE VIEWER COUNT ──────────────────────────────────────────────
+
+    let localCategoriesCache = [];
+    let localItemsCache = [];
+    let localOrdersCache = [];
+    let isEditingItem = false;
+    let isEditingCat = false;
+
+    function switchTab(tabId, btnElement) {
+      document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btnElement.classList.add('active');
+    }
+
+    function loadAllData() {
+      fetchOrders();
+      fetchCategories();
+      fetchItems();
+    }
+
+    function money(n) {
+      return "Rs " + Number(n).toLocaleString("en-PK");
+    }
+
+    /* ── ORDERS CONTROLS ── */
+    async function fetchOrders() {
+      const container = document.getElementById("ordersContainer");
+      container.innerHTML = '<div class="status-msg">Fetching records...</div>';
+      try {
+        const { data: orders, error } = await sb.from("orders").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        localOrdersCache = orders || [];
+        if (!orders || orders.length === 0) {
+          container.innerHTML = '<div class="status-msg">🍽️ No live receipts found!</div>';
+          return;
+        }
+        container.innerHTML = "";
+        orders.forEach(order => {
+          const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
+          
+          const card = document.createElement("div");
+          card.className = "order-card";
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;">
+              <div>
+                <span class="order-num">#${orderNum}</span>
+                <span style="font-weight:700; font-size:16px; margin-left:8px;">${order.customer_name || 'Anonymous'}</span>
+                <span style="font-size:14px; color:var(--brand2); margin-left:8px;">${order.customer_phone || ''}</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <span class="chip">${order.payment_method || 'COD'}</span>
+                <button class="btn btn-print" onclick="printReceipt('${order.id}')">🖨️ Print</button>
+                <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">Clear</button>
+              </div>
+            </div>
+            <div style="font-size:15px; margin-bottom:12px;">
+              Item: <strong>${order.qty || 1}x ${order.item_name}</strong> 
+              ${order.size ? `<span style="color:var(--brand2)">(${order.size.toUpperCase()})</span>` : ''} 
+              <span style="color:var(--muted); font-size:13px;">[Category: ${order.category_name}]</span>
+            </div>
+            <div style="background:var(--card2); padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;">
+              📍 <strong>Address:</strong> ${order.customer_address || 'None'}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:rgba(238, 242, 255, 0.5);">
+              <span>Placed: ${order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : 'Just now'}</span>
+              <span style="font-size:16px; font-weight:700; color:var(--ok);">${money(order.total)}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = `<div class="status-msg" style="color:var(--brand)">❌ Error loading orders: ${err.message}</div>`;
+      }
+    }
+
+    function printReceipt(orderId) {
+      const order = localOrdersCache.find(o => o.id === orderId);
+      if (!order) { alert("Order details missing!"); return; }
+      
+      const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
+      const dateStr = order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : new Date().toLocaleString("en-PK");
+      const sizeLabel = order.size ? '<br><small>(' + order.size.toUpperCase() + ')</small>' : '';
+      
+      // Select the hidden iframe element
+      const iframe = document.getElementById('receiptPrintFrame');
+      const fDoc = iframe.contentWindow || iframe.contentDocument;
+      const iframeDoc = fDoc.document ? fDoc.document : fDoc;
+      
+      let htmlContent = '<html><head><title>Receipt #' + orderNum + '</title>';
+      htmlContent += '<style>';
+      // STRICT PAGE DEFINITIONS TO DEFEAT BROWSER OVERRIDES
+      htmlContent += '@page { size: 58mm auto !important; margin: 0mm !important; }';
+      htmlContent += '@media print { ';
+      htmlContent += '  html, body { width: 58mm !important; max-width: 58mm !important; margin: 0px !important; padding: 2mm !important; background: #fff !important; color: #000 !important; }';
+      htmlContent += '  .no-print { display: none !important; }';
+      htmlContent += '}';
+      htmlContent += 'body { font-family: "Courier New", Courier, monospace; font-size: 11px; line-height: 1.2; width: 58mm; box-sizing: border-box; background: #fff; color: #000; margin: 0; padding: 5px; }';
+      htmlContent += '.center { text-align: center; } .bold { font-weight: bold; } .divider { border-top: 1px dashed #000; margin: 5px 0; }';
+      htmlContent += 'table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 11px; } .right { text-align: right; }';
+      htmlContent += '.totals { font-size: 12px; font-weight: bold; margin-top: 6px; text-align: right; } .info-block p { margin: 2px 0; word-wrap: break-word; }';
+      htmlContent += '</style></head><body>';
+      
+      htmlContent += '<div class="center">';
+      htmlContent += '<h3 style="margin: 0 0 1px 0; font-size: 14px;">ONE BITE</h3>';
+      htmlContent += '<p style="margin: 0 0 4px 0; font-size: 9px; letter-spacing: 0.5px;">Taste Worth Living For</p>';
+      htmlContent += '<p class="bold" style="font-size: 11px; margin: 3px 0;">ORDER: #' + orderNum + '</p>';
+      htmlContent += '<p style="font-size: 9px; margin: 0;">' + dateStr + '</p>';
+      htmlContent += '</div>';
+      
+      htmlContent += '<div class="divider"></div>';
+      
+      htmlContent += '<div class="info-block">';
+      htmlContent += '<p><span class="bold">Cust:</span> ' + (order.customer_name || "Walk-in") + '</p>';
+      htmlContent += '<p><span class="bold">Cell:</span> ' + (order.customer_phone || "—") + '</p>';
+      htmlContent += '<p><span class="bold">Addr:</span> ' + (order.customer_address || "Delivery") + '</p>';
+      htmlContent += '</div>';
+      
+      htmlContent += '<div class="divider"></div>';
+      
+      htmlContent += '<table><thead><tr>';
+      htmlContent += '<th align="left" style="font-size: 10px; border-bottom: 1px solid #000;">Item</th>';
+      htmlContent += '<th class="right" style="font-size: 10px; width: 20px; border-bottom: 1px solid #000;">Qty</th>';
+      htmlContent += '<th class="right" style="font-size: 10px; width: 60px; border-bottom: 1px solid #000;">Total</th>';
+      htmlContent += '</tr></thead><tbody><tr>';
+      htmlContent += '<td style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + order.item_name + sizeLabel + '</td>';
+      htmlContent += '<td class="right" style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + (order.qty || 1) + '</td>';
+      htmlContent += '<td class="right" style="font-size: 10px; padding: 3px 0; vertical-align: top;">Rs ' + Number(order.total).toLocaleString() + '</td>';
+      htmlContent += '</tr></tbody></table>';
+      
+      htmlContent += '<div class="divider"></div>';
+      
+      htmlContent += '<div class="totals">TOTAL: Rs ' + Number(order.total).toLocaleString() + '</div>';
+      
+      htmlContent += '<div class="center" style="margin-top: 12px; padding-bottom: 10px;">';
+      htmlContent += '<p style="margin: 0; font-size: 9px;">Payment: ' + (order.payment_method || "COD") + '</p>';
+      htmlContent += '<p style="margin: 2px 0 0 0; font-size: 9px; font-weight: bold;">*** Thank You! ***</p>';
+      htmlContent += '</div>';
+      
+      htmlContent += '</body></html>';
+      
+      // Write to isolated frame canvas and invoke instant print execution
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+      
+      // Triggers system driver layer without popups hijacking layout styles
+      setTimeout(function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      }, 250);
+    }
+
+    async function deleteOrder(id) {
+      if (!confirm("Remove this order profile from live stack?")) return;
+      try {
+        const { error } = await sb.from("orders").delete().eq("id", id);
+        if (error) throw error;
+        fetchOrders();
+      } catch (err) { alert("Delete error: " + err.message); }
+    }
+
+    /* ── CATEGORIES CONTROLS ── */
+    async function fetchCategories() {
+      const tbody = document.getElementById("categoriesTableBody");
+      const dropdown = document.getElementById("itemCategory");
+      tbody.innerHTML = '<tr><td colspan="4" class="status-msg">Loading...</td></tr>';
+      try {
+        const { data: categories, error } = await sb.from("categories").select("*");
+        if (error) throw error;
+        localCategoriesCache = categories || [];
+        
+        tbody.innerHTML = "";
+        dropdown.innerHTML = '<option value="">Select Category</option>';
+        
+        localCategoriesCache.forEach(cat => {
+          dropdown.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="font-size:20px;">${cat.icon || '📁'}</td>
+            <td><strong>${cat.name}</strong></td>
+            <td>${cat.short || ''}</td>
+            <td style="text-align:right;">
+              <button class="btn btn-muted" onclick="editCategory('${cat.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
+              <button class="btn btn-danger" onclick="deleteCategory('${cat.id}')">Remove</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) { tbody.innerHTML = `<tr><td colspan="4">Error: ${err.message}</td></tr>`; }
+    }
+
+    async function saveCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById("catName").value.trim();
+      const short = document.getElementById("catShort").value.trim();
+      const icon = document.getElementById("catIcon").value.trim();
+      const image = document.getElementById("catImage").value.trim();
+
+      const payload = { name, short, icon, image };
+
+      try {
+        if (isEditingCat) {
+          const id = document.getElementById("editingCatId").value;
+          const { error } = await sb.from("categories").update(payload).eq("id", id);
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
+        } else {
+          const { error } = await sb.from("categories").insert([payload]);
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
+        }
+        resetCatForm();
+        fetchCategories();
+        alert("Category successfully saved!");
+      } catch (err) { alert("System Error: " + err.message); }
+    }
+
+    function editCategory(id) {
+      const cat = localCategoriesCache.find(c => c.id === id);
+      if (!cat) return;
+      isEditingCat = true;
+      document.getElementById("editingCatId").value = cat.id;
+      document.getElementById("catName").value = cat.name || '';
+      document.getElementById("catShort").value = cat.short || '';
+      document.getElementById("catIcon").value = cat.icon || '';
+      document.getElementById("catImage").value = cat.image || '';
+      document.getElementById("catSubmitBtn").innerText = "Apply Category Updates";
+    }
+
+    function resetCatForm() {
+      isEditingCat = false;
+      document.getElementById("categoryForm").reset();
+      document.getElementById("catSubmitBtn").innerText = "📁 Save Category";
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm("Are you sure? This will break items mapped to this category.")) return;
+      try {
+        const { error } = await sb.from("categories").delete().eq("id", id);
+        if (error) throw error;
+        fetchCategories();
+      } catch (err) { alert("Delete error: " + err.message); }
+    }
+
+    /* ── ITEMS CONTROLS ── */
+    async function fetchItems() {
+      const tbody = document.getElementById("itemsTableBody");
+      tbody.innerHTML = '<tr><td colspan="5" class="status-msg">Loading inventory...</td></tr>';
+      try {
+        const { data: items, error } = await sb.from("items").select("*");
+        if (error) throw error;
+        localItemsCache = items || [];
+        tbody.innerHTML = "";
+
+        localItemsCache.forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><strong>${item.name}</strong></td>
+            <td><span class="chip">${item.category_id}</span></td>
+            <td style="color:var(--ok); font-weight:600;">${money(item.price)}</td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
+            <td style="text-align:right;">
+              <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
+              <button class="btn btn-danger" onclick="deleteItem('${item.id}')">Remove</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) { tbody.innerHTML = `<tr><td colspan="5">Error: ${err.message}</td></tr>`; }
+    }
+
+    async function saveItem(e) {
+      e.preventDefault();
+      const name = document.getElementById("itemName").value.trim();
+      const category_id = document.getElementById("itemCategory").value;
+      const price = Number(document.getElementById("itemPrice").value);
+      const description = document.getElementById("itemDesc").value.trim();
+      const image = document.getElementById("itemImage").value.trim();
+
+      const payload = { name, category_id, price, description, image };
+
+      try {
+        if (isEditingItem) {
+          const id = document.getElementById("editingItemId").value;
+          const { error } = await sb.from("items").update(payload).eq("id", id);
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
+        } else {
+          const { error } = await sb.from("items").insert([payload]);
+          if (error) { alert("Write Operation Failed: " + error.message); return; }
+        }
+        resetItemForm();
+        fetchItems();
+        alert("Product successfully saved!");
+      } catch (err) { alert("System Error: " + err.message); }
+    }
+
+    function editItem(id) {
+      const item = localItemsCache.find(i => i.id === id);
+      if (!item) return;
+      isEditingItem = true;
+      document.getElementById("editingItemId").value = item.id;
+      document.getElementById("itemName").value = item.name || '';
+      document.getElementById("itemCategory").value = item.category_id || '';
+      document.getElementById("itemPrice").value = item.price || '';
+      document.getElementById("itemDesc").value = item.description || '';
+      document.getElementById("itemImage").value = item.image || '';
+      document.getElementById("itemSubmitBtn").innerText = "Apply Product Updates";
+    }
+
+    function resetItemForm() {
+      isEditingItem = false;
+      document.getElementById("itemForm").reset();
+      document.getElementById("itemSubmitBtn").innerText = "✨ Save Product";
+    }
+
+    async function deleteItem(id) {
+      if (!confirm("Delete this menu product?")) return;
+      try {
+        const { error } = await sb.from("items").delete().eq("id", id);
+        if (error) throw error;
+        fetchItems();
+      } catch (err) { alert("Delete error: " + err.message); }
+    }
+  </script>
+</body>
+</html>
