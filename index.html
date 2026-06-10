@@ -161,7 +161,7 @@
       transform: translateY(1px);
     }
 
-    /* PROFESSIONAL HAMBURGER BUTTON (Left Aligned Modern Style) */
+    /* PROFESSIONAL HAMBURGER BUTTON */
     .hamburgerBtn {
       display: none;
       position: absolute;
@@ -212,7 +212,7 @@
       width: 75%;
     }
 
-    /* PREMIUM MOBILE DRAWER MENU (Slides from Left) */
+    /* PREMIUM MOBILE DRAWER MENU */
     .mobileMenuDrawer {
       position: fixed;
       top: 0;
@@ -748,6 +748,11 @@
       background: var(--ok);
     }
 
+    /* Red Alert Dot Variant for invalid conditions */
+    .toast.error .dot {
+      background: var(--brand);
+    }
+
     .mutedBox {
       border: 1px dashed rgba(255, 255, 255, 0.18);
       background: rgba(255, 255, 255, 0.04);
@@ -758,7 +763,6 @@
       line-height: 1.45;
     }
 
-    /* ABOUT DATA TABLE ALIGNMENT style layout */
     .aboutInfoTable {
       display: grid;
       grid-template-columns: max-content 1fr;
@@ -923,7 +927,7 @@
         </button>
       </div>
 
-      <form class="modalBody" id="orderForm">
+      <form class="modalBody" id="orderForm" novalidate>
         <div class="formRow">
           <label>
             Your name
@@ -957,7 +961,7 @@
 
         <label>
           Address / Notes
-          <textarea name="address" autocomplete="street-address" placeholder="Street, area, landmark..."></textarea>
+          <textarea required name="address" autocomplete="street-address" placeholder="Street, area, landmark..."></textarea>
         </label>
 
         <button class="btn btnPrimary" type="submit">Confirm Order</button>
@@ -986,7 +990,6 @@
       }
     });
 
-    /* MOBILE MENU DRAWER CONTROLLER */
     const drawer = document.getElementById("mobileDrawer");
     const menuToggleBtn = document.getElementById("menuToggleBtn");
 
@@ -999,7 +1002,6 @@
       drawer.classList.remove("open");
     }
 
-    // Dismiss drawer when clicking anywhere outside content grid
     document.addEventListener("click", (e) => {
       if (!drawer.contains(e.target) && !menuToggleBtn.contains(e.target)) {
         closeMobileMenu();
@@ -1013,32 +1015,6 @@
 
     const wiki = (path, name, w = 640) =>
       `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}/${w}px-${name}`;
-
-    const PIZZA = {
-      p1: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=640&h=400&q=80",
-      p2: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=640&h=400&q=80",
-      p3: "https://images.unsplash.com/photo-1548365328-9f547fb0953b?auto=format&fit=crop&w=640&h=400&q=80",
-      p4: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=640&h=400&q=80",
-      p5: "https://images.unsplash.com/photo-1511689660979-10d2b1aada49?auto=format&fit=crop&w=640&h=400&q=80",
-      p6: "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-      p7: "https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-      p8: "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-      p9: "https://images.pexels.com/photos/4109084/pexels-photo-4109084.jpeg?auto=compress&cs=tinysrgb&w=640&h=400&fit=crop",
-    };
-
-    const PK = {
-      rollCat: "https://ticklethosetastebuds.com/wp-content/uploads/2015/06/Chicken2BParatha2BRoll.jpg",
-      chickenRoll: "https://ticklethosetastebuds.com/wp-content/uploads/2015/06/Chicken2BParatha2BRoll.jpg",
-      zingerRoll: "https://outgrinternal.com/wp-content/uploads/2023/06/Chicken-Shawarma-Image-F.jpg",
-      tikkaRoll: "https://bakewithzoha.com/wp-content/uploads/2024/03/chicken-tikka-paratha-rolls-featured.jpg",
-      malaiRoll: "https://thesaltandsweet.com/wp-content/uploads/2021/03/Untitled-design-18.jpg",
-      seekhRoll: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaCat: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaLeg: "https://images.unsplash.com/photo-1606728035253-49e8a23146de?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaChest: "https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaBoti: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=640&h=400&q=80",
-      tikkaMalai: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=640&h=400&q=80",
-    };
 
     let DB = { categories: [] };
 
@@ -1117,13 +1093,20 @@
       return t.content.firstElementChild;
     };
 
-    const toast = (msg) => {
+    const toast = (msg, isError = false) => {
       const t = document.getElementById("toast");
       const txt = document.getElementById("toastText");
       txt.textContent = msg;
+      
+      if (isError) {
+        t.classList.add("error");
+      } else {
+        t.classList.remove("error");
+      }
+      
       t.classList.add("open");
       window.clearTimeout(toast._timer);
-      toast._timer = window.setTimeout(() => t.classList.remove("open"), 2600);
+      toast._timer = window.setTimeout(() => t.classList.remove("open"), 3000);
     };
 
     const setHeader = ({ title, subtitle }) => {
@@ -1399,6 +1382,24 @@
 
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      
+      // 1. Strict verification guard check: Make sure all details are filled properly
+      if (!orderForm.checkValidity()) {
+        orderForm.reportValidity(); // Highlights the exact empty/half-filled field to user
+        toast("⚠️ Please complete your information first!", true);
+        return;
+      }
+
+      // Additional custom sanity check for spaces or half-entered context fields
+      const nameVal = orderForm.querySelector('[name="name"]').value.trim();
+      const phoneVal = orderForm.querySelector('[name="phone"]').value.trim();
+      const addressVal = orderForm.querySelector('[name="address"]').value.trim();
+
+      if (nameVal.length < 2 || phoneVal.length < 5 || addressVal.length < 6) {
+        toast("⚠️ Please complete your information first!", true);
+        return;
+      }
+
       if (!currentOrderTarget) return;
 
       const submitBtn = orderForm.querySelector('[type="submit"]');
@@ -1408,16 +1409,20 @@
       const { catId, itemId, size, finalPrice } = currentOrderTarget;
       const c = findCategory(catId);
       const item = findItem(catId, itemId);
-      if (!c || !item) { submitBtn.disabled = false; submitBtn.textContent = "Confirm Order"; return; }
+      if (!c || !item) { 
+        submitBtn.disabled = false; 
+        submitBtn.textContent = "Confirm Order"; 
+        return; 
+      }
 
       const fd = new FormData(orderForm);
       const qty = Number(fd.get("qty") || 1);
       const unitPrice = finalPrice ?? item.price;
 
       const orderPayload = {
-        customer_name: String(fd.get("name") || ""),
-        customer_phone: String(fd.get("phone") || ""),
-        customer_address: String(fd.get("address") || ""),
+        customer_name: nameVal,
+        customer_phone: phoneVal,
+        customer_address: addressVal,
         payment_method: String(fd.get("payment") || "Cash on delivery"),
         qty,
         category_id: c.id,
