@@ -230,6 +230,9 @@
       gap: 12px;
       transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 995;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .mobileMenuDrawer.open {
@@ -1021,30 +1024,36 @@
       }
     }
 
+    /* ── MOBILE DRAWER SEARCH ── */
     .drawerSearchRow {
-      margin-bottom: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     .drawerSearchBar {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 14px;
-      border: 1px solid rgba(238,242,255,0.08);
-      background: rgba(255,255,255,0.04);
+      gap: 10px;
+      padding: 13px 16px;
+      border: 1px solid rgba(238,242,255,0.1);
+      background: rgba(255,255,255,0.05);
       border-radius: 14px;
-      transition: border-color 150ms;
+      transition: border-color 180ms, box-shadow 180ms;
     }
 
     .drawerSearchBar:focus-within {
-      border-color: rgba(255,77,77,0.45);
+      border-color: rgba(255,77,77,0.5);
+      box-shadow: 0 0 0 3px rgba(255,77,77,0.12);
     }
 
     .drawerSearchBar svg {
       width: 16px;
       height: 16px;
-      opacity: 0.5;
+      opacity: 0.45;
       flex-shrink: 0;
+      color: var(--text);
     }
 
     .drawerSearchInput {
@@ -1056,10 +1065,135 @@
       font-weight: 500;
       width: 100%;
       font-family: inherit;
+      -webkit-appearance: none;
     }
 
     .drawerSearchInput::placeholder {
-      color: rgba(238,242,255,0.35);
+      color: rgba(238,242,255,0.32);
+    }
+
+    /* clear button inside drawer search */
+    .drawerSearchClear {
+      background: transparent;
+      border: none;
+      color: rgba(238,242,255,0.4);
+      cursor: pointer;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1;
+      display: none;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .drawerSearchClear.visible {
+      display: flex;
+    }
+
+    /* results list inside drawer */
+    .drawerResults {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-height: 48vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border-radius: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .drawerResults:empty {
+      display: none;
+    }
+
+    .drawerResultsGroup {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drawerResultsLabel {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(238,242,255,0.3);
+      padding: 8px 10px 4px;
+    }
+
+    .drawerResultLink {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(238,242,255,0.05);
+      text-decoration: none;
+      color: var(--text);
+      transition: background 120ms, border-color 120ms;
+      margin-bottom: 3px;
+    }
+
+    .drawerResultLink:active {
+      background: rgba(255,77,77,0.12);
+      border-color: rgba(255,77,77,0.3);
+    }
+
+    .drawerResultIcon {
+      font-size: 22px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .drawerResultText {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .drawerResultName {
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drawerResultSub {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(238,242,255,0.45);
+    }
+
+    .drawerResultArrow {
+      margin-left: auto;
+      font-size: 16px;
+      color: rgba(238,242,255,0.25);
+      flex-shrink: 0;
+    }
+
+    .drawerNoResults {
+      padding: 14px 12px;
+      font-size: 13px;
+      color: rgba(238,242,255,0.38);
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(238,242,255,0.05);
+    }
+
+    .drawerResultsDivider {
+      height: 1px;
+      background: rgba(238,242,255,0.06);
+      margin: 4px 0 6px;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1133,8 +1267,9 @@
             <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
           <input class="drawerSearchInput" id="mobileSearchInput" type="search" placeholder="Search pizza, fajita…" autocomplete="off" spellcheck="false" />
+          <button class="drawerSearchClear" id="mobileSearchClear" type="button" aria-label="Clear">×</button>
         </div>
-        <div id="mobileSearchResults"></div>
+        <div class="drawerResults" id="mobileSearchResults"></div>
       </div>
 
       <a class="drawerLink" href="#/" onclick="closeMobileMenu()">
@@ -1834,48 +1969,86 @@
     // Mobile drawer search
     const mobileInput = document.getElementById('mobileSearchInput');
     const mobileResults = document.getElementById('mobileSearchResults');
+    const mobileSearchClear = document.getElementById('mobileSearchClear');
 
-    mobileInput.addEventListener('input', () => {
-      const q = mobileInput.value;
-      if (!q.trim()) { mobileResults.innerHTML = ''; return; }
-      const { categories, items } = getSearchResults(q);
+    function renderMobileResults(q) {
       mobileResults.innerHTML = '';
+      if (!q.trim()) return;
+
+      const { categories, items } = getSearchResults(q);
 
       if (!categories.length && !items.length) {
-        mobileResults.innerHTML = `<div style="font-size:12px;color:rgba(238,242,255,0.4);padding:8px 4px">No results</div>`;
+        mobileResults.innerHTML = `<div class="drawerNoResults">No results for "<strong>${q}</strong>"</div>`;
         return;
       }
 
       const navigate = () => {
         mobileInput.value = '';
+        mobileSearchClear.classList.remove('visible');
         mobileResults.innerHTML = '';
         closeMobileMenu();
       };
 
-      [...categories.map(c => ({
-        href: `#/c/${encodeURIComponent(c.id)}`,
-        icon: c.icon || '🍽️',
-        name: c.name,
-        sub: `${c.items.length} items`,
-      })), ...items.map(i => ({
-        href: `#/c/${encodeURIComponent(i._catId)}/i/${encodeURIComponent(i.id)}`,
-        icon: i._catIcon || '🍽️',
-        name: i.name,
-        sub: `${i._catName} • ${money(i.price)}`,
-      }))].forEach(r => {
-        const a = document.createElement('a');
-        a.className = 'searchResultItem';
-        a.href = r.href;
-        a.style.cssText = 'border-radius:10px;margin-bottom:4px;';
-        a.innerHTML = `
-          <span class="searchResultEmoji">${r.icon}</span>
-          <span class="searchResultMeta">
-            <span class="searchResultName">${r.name}</span>
-            <span class="searchResultSub">${r.sub}</span>
-          </span>`;
-        a.addEventListener('click', navigate);
-        mobileResults.appendChild(a);
-      });
+      if (categories.length) {
+        const group = document.createElement('div');
+        group.className = 'drawerResultsGroup';
+        group.innerHTML = `<div class="drawerResultsLabel">Categories</div>`;
+        categories.forEach(c => {
+          const a = document.createElement('a');
+          a.className = 'drawerResultLink';
+          a.href = `#/c/${encodeURIComponent(c.id)}`;
+          a.innerHTML = `
+            <span class="drawerResultIcon">${c.icon || '🍽️'}</span>
+            <span class="drawerResultText">
+              <span class="drawerResultName">${c.name}</span>
+              <span class="drawerResultSub">${c.items.length} items available</span>
+            </span>
+            <span class="drawerResultArrow">›</span>`;
+          a.addEventListener('click', navigate);
+          group.appendChild(a);
+        });
+        mobileResults.appendChild(group);
+      }
+
+      if (categories.length && items.length) {
+        const div = document.createElement('div');
+        div.className = 'drawerResultsDivider';
+        mobileResults.appendChild(div);
+      }
+
+      if (items.length) {
+        const group = document.createElement('div');
+        group.className = 'drawerResultsGroup';
+        group.innerHTML = `<div class="drawerResultsLabel">Items</div>`;
+        items.forEach(item => {
+          const a = document.createElement('a');
+          a.className = 'drawerResultLink';
+          a.href = `#/c/${encodeURIComponent(item._catId)}/i/${encodeURIComponent(item.id)}`;
+          a.innerHTML = `
+            <span class="drawerResultIcon">${item._catIcon || '🍽️'}</span>
+            <span class="drawerResultText">
+              <span class="drawerResultName">${item.name}</span>
+              <span class="drawerResultSub">${item._catName} · ${money(item.price)}</span>
+            </span>
+            <span class="drawerResultArrow">›</span>`;
+          a.addEventListener('click', navigate);
+          group.appendChild(a);
+        });
+        mobileResults.appendChild(group);
+      }
+    }
+
+    mobileInput.addEventListener('input', () => {
+      const q = mobileInput.value;
+      mobileSearchClear.classList.toggle('visible', q.length > 0);
+      renderMobileResults(q);
+    });
+
+    mobileSearchClear.addEventListener('click', () => {
+      mobileInput.value = '';
+      mobileSearchClear.classList.remove('visible');
+      mobileResults.innerHTML = '';
+      mobileInput.focus();
     });
 
     // ─── END SEARCH ──────────────────────────────────────────────────────────
