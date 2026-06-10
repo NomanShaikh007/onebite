@@ -137,6 +137,24 @@
       box-shadow: none;
     }
 
+    /* Mobile: icon-only so it never overlaps the title */
+    @media (max-width: 480px) {
+      .homeBtnText {
+        display: none;
+      }
+      .homeBtn {
+        padding: 8px;
+        gap: 0;
+      }
+      .homeBtn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .brandCenter {
+        padding: 0 40px;
+      }
+    }
+
     .brand strong {
       letter-spacing: 0.2px;
       font-size: 16px;
@@ -728,7 +746,7 @@
             <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor"
               stroke-width="1.8" stroke-linejoin="round" />
           </svg>
-          Home
+          <span class="homeBtnText">Home</span>
         </a>
       </div>
     </header>
