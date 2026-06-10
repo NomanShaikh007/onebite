@@ -844,6 +844,223 @@
       color: var(--brand2);
       font-weight: 600;
     }
+
+    /* SEARCH BAR */
+    .searchWrapper {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      z-index: 20;
+    }
+
+    .searchBar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      background: rgba(18, 20, 27, 0.85);
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      width: 220px;
+      transition: border-color 150ms ease, box-shadow 150ms ease, width 200ms ease;
+      cursor: text;
+    }
+
+    .searchBar:focus-within {
+      border-color: rgba(255, 77, 77, 0.5);
+      box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.13), 0 10px 30px rgba(0,0,0,0.2);
+      width: 260px;
+    }
+
+    .searchBar svg {
+      width: 15px;
+      height: 15px;
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+
+    .searchInput {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      width: 100%;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .searchInput::placeholder {
+      color: rgba(238, 242, 255, 0.4);
+    }
+
+    .searchClear {
+      background: transparent;
+      border: none;
+      color: rgba(238,242,255,0.45);
+      cursor: pointer;
+      padding: 0;
+      display: none;
+      align-items: center;
+      font-size: 16px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .searchClear.visible {
+      display: flex;
+    }
+
+    .searchDropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 260px;
+      max-width: 320px;
+      background: rgba(18, 20, 27, 0.98);
+      border: 1px solid rgba(238, 242, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+      overflow: hidden;
+      display: none;
+      z-index: 500;
+      backdrop-filter: blur(20px);
+    }
+
+    .searchDropdown.open {
+      display: block;
+    }
+
+    .searchGroup {
+      padding: 6px 0;
+    }
+
+    .searchGroupLabel {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(238,242,255,0.35);
+      padding: 6px 14px 2px;
+    }
+
+    .searchResultItem {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: background 100ms ease;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .searchResultItem:hover,
+    .searchResultItem.focused {
+      background: rgba(255,255,255,0.07);
+    }
+
+    .searchResultEmoji {
+      font-size: 18px;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .searchResultMeta {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .searchResultName {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .searchResultSub {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(238,242,255,0.45);
+    }
+
+    .searchNoResults {
+      padding: 16px 14px;
+      font-size: 13px;
+      color: rgba(238,242,255,0.4);
+      text-align: center;
+    }
+
+    .searchDivider {
+      height: 1px;
+      background: rgba(238,242,255,0.06);
+      margin: 2px 0;
+    }
+
+    /* MOBILE: hide search on very small screens if needed, keep visible */
+    @media (max-width: 768px) {
+      .searchWrapper {
+        display: none;
+      }
+      /* Show it inside drawer instead — handled via drawerSearch */
+      .drawerSearchRow {
+        display: flex;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .drawerSearchRow {
+        display: none;
+      }
+    }
+
+    .drawerSearchRow {
+      margin-bottom: 4px;
+    }
+
+    .drawerSearchBar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border: 1px solid rgba(238,242,255,0.08);
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      transition: border-color 150ms;
+    }
+
+    .drawerSearchBar:focus-within {
+      border-color: rgba(255,77,77,0.45);
+    }
+
+    .drawerSearchBar svg {
+      width: 16px;
+      height: 16px;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+
+    .drawerSearchInput {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .drawerSearchInput::placeholder {
+      color: rgba(238,242,255,0.35);
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -859,6 +1076,19 @@
             <span></span>
           </span>
         </button>
+
+        <!-- Desktop Search -->
+        <div class="searchWrapper" id="desktopSearchWrapper">
+          <div class="searchBar" id="desktopSearchBar">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <input class="searchInput" id="desktopSearchInput" type="search" placeholder="Search pizza, burger…" autocomplete="off" spellcheck="false" />
+            <button class="searchClear" id="desktopSearchClear" type="button" aria-label="Clear search">×</button>
+          </div>
+          <div class="searchDropdown" id="desktopSearchDropdown"></div>
+        </div>
 
         <div class="brandCenter">
           <span class="welcomeTag">Welcome to</span>
@@ -895,6 +1125,18 @@
         </button>
       </div>
       
+      <!-- Mobile Search -->
+      <div class="drawerSearchRow">
+        <div class="drawerSearchBar">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <input class="drawerSearchInput" id="mobileSearchInput" type="search" placeholder="Search pizza, fajita…" autocomplete="off" spellcheck="false" />
+        </div>
+        <div id="mobileSearchResults"></div>
+      </div>
+
       <a class="drawerLink" href="#/" onclick="closeMobileMenu()">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
@@ -1462,6 +1704,181 @@
     });
 
     window.addEventListener("hashchange", render);
+
+    // ─── SEARCH LOGIC ────────────────────────────────────────────────────────
+
+    function getSearchResults(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) return { categories: [], items: [] };
+
+      const categories = DB.categories.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        (c.short && c.short.toLowerCase().includes(q))
+      );
+
+      const items = [];
+      for (const c of DB.categories) {
+        for (const item of c.items) {
+          if (
+            item.name.toLowerCase().includes(q) ||
+            (item.desc && item.desc.toLowerCase().includes(q)) ||
+            (item.tags && item.tags.some(t => t.toLowerCase().includes(q)))
+          ) {
+            items.push({ ...item, _catId: c.id, _catName: c.name, _catIcon: c.icon });
+          }
+        }
+      }
+
+      return { categories, items };
+    }
+
+    function buildDropdown(query, dropdownEl, onNavigate) {
+      const { categories, items } = getSearchResults(query);
+      dropdownEl.innerHTML = '';
+
+      if (!categories.length && !items.length) {
+        dropdownEl.innerHTML = `<div class="searchNoResults">No results for "${query}"</div>`;
+        dropdownEl.classList.add('open');
+        return;
+      }
+
+      if (categories.length) {
+        const group = document.createElement('div');
+        group.className = 'searchGroup';
+        group.innerHTML = `<div class="searchGroupLabel">Categories</div>`;
+        for (const c of categories) {
+          const a = document.createElement('a');
+          a.className = 'searchResultItem';
+          a.href = `#/c/${encodeURIComponent(c.id)}`;
+          a.innerHTML = `
+            <span class="searchResultEmoji">${c.icon || '🍽️'}</span>
+            <span class="searchResultMeta">
+              <span class="searchResultName">${c.name}</span>
+              <span class="searchResultSub">${c.items.length} items</span>
+            </span>`;
+          a.addEventListener('click', () => { onNavigate(); });
+          group.appendChild(a);
+        }
+        dropdownEl.appendChild(group);
+      }
+
+      if (categories.length && items.length) {
+        const div = document.createElement('div');
+        div.className = 'searchDivider';
+        dropdownEl.appendChild(div);
+      }
+
+      if (items.length) {
+        const group = document.createElement('div');
+        group.className = 'searchGroup';
+        group.innerHTML = `<div class="searchGroupLabel">Items</div>`;
+        for (const item of items) {
+          const a = document.createElement('a');
+          a.className = 'searchResultItem';
+          a.href = `#/c/${encodeURIComponent(item._catId)}/i/${encodeURIComponent(item.id)}`;
+          a.innerHTML = `
+            <span class="searchResultEmoji">${item._catIcon || '🍽️'}</span>
+            <span class="searchResultMeta">
+              <span class="searchResultName">${item.name}</span>
+              <span class="searchResultSub">${item._catName} • ${money(item.price)}</span>
+            </span>`;
+          a.addEventListener('click', () => { onNavigate(); });
+          group.appendChild(a);
+        }
+        dropdownEl.appendChild(group);
+      }
+
+      dropdownEl.classList.add('open');
+    }
+
+    // Desktop search
+    const desktopInput = document.getElementById('desktopSearchInput');
+    const desktopDropdown = document.getElementById('desktopSearchDropdown');
+    const desktopClear = document.getElementById('desktopSearchClear');
+
+    desktopInput.addEventListener('input', () => {
+      const q = desktopInput.value;
+      desktopClear.classList.toggle('visible', q.length > 0);
+      if (!q.trim()) { desktopDropdown.classList.remove('open'); desktopDropdown.innerHTML = ''; return; }
+      buildDropdown(q, desktopDropdown, () => {
+        desktopInput.value = '';
+        desktopClear.classList.remove('visible');
+        desktopDropdown.classList.remove('open');
+        desktopDropdown.innerHTML = '';
+      });
+    });
+
+    desktopClear.addEventListener('click', () => {
+      desktopInput.value = '';
+      desktopClear.classList.remove('visible');
+      desktopDropdown.classList.remove('open');
+      desktopDropdown.innerHTML = '';
+      desktopInput.focus();
+    });
+
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('desktopSearchWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        desktopDropdown.classList.remove('open');
+      }
+    });
+
+    desktopInput.addEventListener('focus', () => {
+      if (desktopInput.value.trim()) buildDropdown(desktopInput.value, desktopDropdown, () => {
+        desktopInput.value = '';
+        desktopClear.classList.remove('visible');
+        desktopDropdown.classList.remove('open');
+      });
+    });
+
+    // Mobile drawer search
+    const mobileInput = document.getElementById('mobileSearchInput');
+    const mobileResults = document.getElementById('mobileSearchResults');
+
+    mobileInput.addEventListener('input', () => {
+      const q = mobileInput.value;
+      if (!q.trim()) { mobileResults.innerHTML = ''; return; }
+      const { categories, items } = getSearchResults(q);
+      mobileResults.innerHTML = '';
+
+      if (!categories.length && !items.length) {
+        mobileResults.innerHTML = `<div style="font-size:12px;color:rgba(238,242,255,0.4);padding:8px 4px">No results</div>`;
+        return;
+      }
+
+      const navigate = () => {
+        mobileInput.value = '';
+        mobileResults.innerHTML = '';
+        closeMobileMenu();
+      };
+
+      [...categories.map(c => ({
+        href: `#/c/${encodeURIComponent(c.id)}`,
+        icon: c.icon || '🍽️',
+        name: c.name,
+        sub: `${c.items.length} items`,
+      })), ...items.map(i => ({
+        href: `#/c/${encodeURIComponent(i._catId)}/i/${encodeURIComponent(i.id)}`,
+        icon: i._catIcon || '🍽️',
+        name: i.name,
+        sub: `${i._catName} • ${money(i.price)}`,
+      }))].forEach(r => {
+        const a = document.createElement('a');
+        a.className = 'searchResultItem';
+        a.href = r.href;
+        a.style.cssText = 'border-radius:10px;margin-bottom:4px;';
+        a.innerHTML = `
+          <span class="searchResultEmoji">${r.icon}</span>
+          <span class="searchResultMeta">
+            <span class="searchResultName">${r.name}</span>
+            <span class="searchResultSub">${r.sub}</span>
+          </span>`;
+        a.addEventListener('click', navigate);
+        mobileResults.appendChild(a);
+      });
+    });
+
+    // ─── END SEARCH ──────────────────────────────────────────────────────────
 
     (async () => {
       const root = document.getElementById("root");
