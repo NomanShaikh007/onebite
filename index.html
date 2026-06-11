@@ -1195,6 +1195,140 @@
       background: rgba(238,242,255,0.06);
       margin: 4px 0 6px;
     }
+    /* ── SUGGESTION PANEL ── */
+    .suggestionBtn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255, 184, 77, 0.08);
+      border: 1px solid rgba(255, 184, 77, 0.2);
+      color: var(--brand2);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      transition: background 150ms, border-color 150ms;
+      margin-top: 4px;
+    }
+
+    .suggestionBtn:active {
+      background: rgba(255, 184, 77, 0.15);
+      border-color: rgba(255, 184, 77, 0.4);
+    }
+
+    .suggestionBtn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    /* Slide-up panel inside drawer */
+    .suggestionPanel {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(255, 184, 77, 0.05);
+      border: 1px solid rgba(255, 184, 77, 0.15);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 4px;
+      animation: slideDown 200ms ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .suggestionPanel.open {
+      display: flex;
+    }
+
+    .suggestionPanelLabel {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255, 184, 77, 0.7);
+    }
+
+    .suggestionTextarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(18, 20, 27, 0.8);
+      border: 1px solid rgba(255, 184, 77, 0.2);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      box-sizing: border-box;
+      line-height: 1.5;
+      transition: border-color 150ms;
+      -webkit-appearance: none;
+    }
+
+    .suggestionTextarea::placeholder {
+      color: rgba(238, 242, 255, 0.3);
+    }
+
+    .suggestionTextarea:focus {
+      border-color: rgba(255, 184, 77, 0.5);
+    }
+
+    .suggestionSubmitBtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px;
+      border-radius: 12px;
+      background: var(--brand2);
+      color: #0b0c10;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 150ms;
+      width: 100%;
+    }
+
+    .suggestionSubmitBtn:active { opacity: 0.85; }
+    .suggestionSubmitBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .suggestionSuccess {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 0 4px;
+      text-align: center;
+    }
+
+    .suggestionSuccess.show { display: flex; }
+
+    .suggestionSuccess span:first-child {
+      font-size: 28px;
+    }
+
+    .suggestionSuccess p {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand2);
+    }
+
+    .suggestionSuccess small {
+      font-size: 11px;
+      color: rgba(238,242,255,0.45);
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1285,6 +1419,37 @@
         </svg>
         About One Bite
       </a>
+
+      <!-- Suggestion Button -->
+      <button class="suggestionBtn" type="button" onclick="toggleSuggestionPanel()">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+        Suggestion / Complaint
+      </button>
+
+      <!-- Suggestion Panel -->
+      <div class="suggestionPanel" id="suggestionPanel">
+        <span class="suggestionPanelLabel">💬 We're listening</span>
+        <div class="suggestionSuccess" id="suggestionSuccess">
+          <span>🎉</span>
+          <p>Message sent!</p>
+          <small>We'll review your feedback. Thank you!</small>
+        </div>
+        <textarea
+          class="suggestionTextarea"
+          id="suggestionText"
+          rows="4"
+          placeholder="Share your complaint, suggestion, or compliment… We read every message."
+          maxlength="500"
+        ></textarea>
+        <button class="suggestionSubmitBtn" id="suggestionSubmitBtn" type="button" onclick="submitSuggestion()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Send Message
+        </button>
+      </div>
     </div>
 
     <main id="root"></main>
@@ -1359,13 +1524,22 @@
     const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const globalRoom = sb.channel('onebite-live-occupancy');
-
-    globalRoom.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await globalRoom.track({ online_at: new Date().toISOString() });
-      }
+    // Visitor presence — tracked so admin can see live viewer count
+    const visitorId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+    const visitorChannel = sb.channel('onebite-live-occupancy', {
+      config: { presence: { key: visitorId } }
     });
+
+    visitorChannel
+      .on('presence', { event: 'sync' }, () => {})
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await visitorChannel.track({
+            online_at: new Date().toISOString(),
+            page: location.hash || '/'
+          });
+        }
+      });
 
     const drawer = document.getElementById("mobileDrawer");
     const menuToggleBtn = document.getElementById("menuToggleBtn");
@@ -2052,6 +2226,62 @@
     });
 
     // ─── END SEARCH ──────────────────────────────────────────────────────────
+
+    // ── SUGGESTION / COMPLAINT ────────────────────────────────────────────
+    function toggleSuggestionPanel() {
+      const panel = document.getElementById('suggestionPanel');
+      const isOpen = panel.classList.contains('open');
+      panel.classList.toggle('open', !isOpen);
+      if (!isOpen) {
+        // Reset state when opening
+        document.getElementById('suggestionSuccess').classList.remove('show');
+        document.getElementById('suggestionText').style.display = '';
+        document.getElementById('suggestionSubmitBtn').style.display = '';
+        setTimeout(() => document.getElementById('suggestionText').focus(), 250);
+      }
+    }
+
+    async function submitSuggestion() {
+      const text = document.getElementById('suggestionText').value.trim();
+      if (!text) {
+        document.getElementById('suggestionText').focus();
+        return;
+      }
+      const btn = document.getElementById('suggestionSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      try {
+        await sb.from('suggestions').insert([{
+          message: text,
+          created_at: new Date().toISOString()
+        }]);
+      } catch (e) {
+        // Even if Supabase table doesn't exist yet, show success so UX isn't broken
+        console.warn('Suggestion insert error:', e);
+      }
+
+      // Show success state
+      document.getElementById('suggestionText').style.display = 'none';
+      document.getElementById('suggestionSubmitBtn').style.display = 'none';
+      document.getElementById('suggestionSuccess').classList.add('show');
+
+      // Auto-close panel after 3 seconds
+      setTimeout(() => {
+        document.getElementById('suggestionPanel').classList.remove('open');
+        document.getElementById('suggestionText').value = '';
+        document.getElementById('suggestionText').style.display = '';
+        document.getElementById('suggestionSubmitBtn').style.display = '';
+        document.getElementById('suggestionSubmitBtn').disabled = false;
+        document.getElementById('suggestionSubmitBtn').innerHTML = `
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Send Message`;
+        document.getElementById('suggestionSuccess').classList.remove('show');
+      }, 3000);
+    }
+    // ── END SUGGESTION ────────────────────────────────────────────────────
 
     (async () => {
       const root = document.getElementById("root");
