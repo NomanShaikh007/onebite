@@ -121,7 +121,85 @@
     .order-num { font-family: monospace; background: rgba(255, 184, 77, 0.15); color: var(--brand2); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 13px; }
     .status-msg { text-align: center; padding: 40px; color: var(--muted); }
     
-    /* Hidden Iframe for silent strict-size printing */
+    .suggestion-card {
+      background: var(--card2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .suggestion-card:hover {
+      border-color: rgba(255, 184, 77, 0.25);
+    }
+
+    .suggestion-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .suggestion-num {
+      font-family: monospace;
+      background: rgba(255, 184, 77, 0.12);
+      color: var(--brand2);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .suggestion-date {
+      font-size: 12px;
+      color: rgba(238,242,255,0.4);
+    }
+
+    .suggestion-message {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+      word-break: break-word;
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid rgba(255,184,77,0.4);
+      padding: 10px 14px;
+      border-radius: 0 10px 10px 0;
+    }
+
+    .suggestion-delete {
+      align-self: flex-end;
+      background: transparent;
+      border: 1px solid rgba(229,62,62,0.3);
+      color: rgba(229,62,62,0.7);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 120ms, color 120ms;
+    }
+
+    .suggestion-delete:hover {
+      background: rgba(229,62,62,0.12);
+      color: #e53e3e;
+    }
+
+    .suggestions-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: rgba(238,242,255,0.35);
+      font-size: 14px;
+    }
+
+    .suggestions-empty span {
+      display: block;
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
     #receiptPrintFrame {
       position: absolute;
       width: 0;
@@ -160,6 +238,7 @@
       <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
       <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
       <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
+      <button class="tab-btn" onclick="switchTab('suggestions-tab', this)">💬 Suggestions</button>
     </div>
 
     <div id="orders-tab" class="view-panel active">
@@ -262,6 +341,20 @@
         </div>
       </div>
     </div>
+
+    <!-- Suggestions Tab -->
+    <div id="suggestions-tab" class="view-panel">
+      <div class="admin-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h3 class="section-title" style="margin:0;">Customer Suggestions & Complaints</h3>
+          <button class="btn btn-muted" onclick="fetchSuggestions()" style="font-size:13px; padding:8px 14px;">🔄 Refresh</button>
+        </div>
+        <div id="suggestionsContainer">
+          <div class="status-msg">Loading messages…</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <iframe id="receiptPrintFrame"></iframe>
@@ -338,6 +431,7 @@
       fetchOrders();
       fetchCategories();
       fetchItems();
+      fetchSuggestions();
     }
 
     function money(n) {
@@ -649,6 +743,72 @@
         if (error) throw error;
         fetchItems();
       } catch (err) { alert("Delete error: " + err.message); }
+    }
+    /* ── SUGGESTIONS ── */
+    async function fetchSuggestions() {
+      const container = document.getElementById("suggestionsContainer");
+      container.innerHTML = '<div class="status-msg">Loading messages…</div>';
+      try {
+        const { data: suggestions, error } = await sb
+          .from("suggestions")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (!suggestions || suggestions.length === 0) {
+          container.innerHTML = `
+            <div class="suggestions-empty">
+              <span>💬</span>
+              No suggestions or complaints yet.
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = "";
+        suggestions.forEach((s, index) => {
+          const num = suggestions.length - index;
+          const date = s.created_at
+            ? new Date(s.created_at).toLocaleString("en-PK")
+            : "Unknown time";
+
+          const card = document.createElement("div");
+          card.className = "suggestion-card";
+          card.id = `suggestion-card-${s.id}`;
+          card.innerHTML = `
+            <div class="suggestion-meta">
+              <span class="suggestion-num">Msg #${num}</span>
+              <span class="suggestion-date">📅 ${date}</span>
+            </div>
+            <div class="suggestion-message">${s.message || '—'}</div>
+            <button class="suggestion-delete" onclick="deleteSuggestion('${s.id}')">🗑 Delete</button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = `<div class="status-msg" style="color:var(--brand)">❌ Error: ${err.message}<br><small style="color:var(--muted)">Make sure a 'suggestions' table exists in Supabase with columns: id, message, created_at</small></div>`;
+      }
+    }
+
+    async function deleteSuggestion(id) {
+      if (!confirm("Delete this message?")) return;
+      try {
+        const { error } = await sb.from("suggestions").delete().eq("id", id);
+        if (error) throw error;
+        const card = document.getElementById(`suggestion-card-${id}`);
+        if (card) card.remove();
+        // Show empty state if no cards left
+        const container = document.getElementById("suggestionsContainer");
+        if (!container.querySelector(".suggestion-card")) {
+          container.innerHTML = `
+            <div class="suggestions-empty">
+              <span>💬</span>
+              No suggestions or complaints yet.
+            </div>`;
+        }
+      } catch (err) {
+        alert("Delete failed: " + err.message);
+      }
     }
   </script>
 </body>
