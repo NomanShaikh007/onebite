@@ -286,33 +286,37 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
-    // The main site joins 'onebite-live-occupancy' and calls .track() for each visitor.
-    // The admin ONLY listens (no .track()) so it doesn't inflate the count.
+    // Admin ONLY listens — no .track() so it never inflates the count.
+    // Main site visitors join 'onebite-live-occupancy' and call .track().
     const viewerCountEl = document.getElementById('liveViewingCount');
     const viewerBadgeEl = document.getElementById('liveViewingBadge');
 
     function updateViewerBadge(count) {
       viewerCountEl.textContent = count === 1 ? '1 viewing' : `${count} viewing`;
-      // Green when people online, dimmed when 0
       viewerBadgeEl.style.opacity = count > 0 ? '1' : '0.5';
     }
 
-    const presenceChannel = sb.channel('onebite-live-occupancy');
+    // Use a unique key so admin itself is NOT tracked as a visitor
+    const adminChannel = sb.channel('onebite-live-occupancy', {
+      config: { presence: { key: 'admin-observer-' + Date.now() } }
+    });
 
-    presenceChannel
+    adminChannel
       .on('presence', { event: 'sync' }, () => {
-        const state = presenceChannel.presenceState();
-        // Each key in state = one connected visitor tab
-        const count = Object.keys(state).length;
-        updateViewerBadge(count);
+        const state = adminChannel.presenceState();
+        // Filter out the admin observer key itself
+        const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
+        updateViewerBadge(visitorCount);
       })
       .on('presence', { event: 'join' }, () => {
-        const state = presenceChannel.presenceState();
-        updateViewerBadge(Object.keys(state).length);
+        const state = adminChannel.presenceState();
+        const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
+        updateViewerBadge(visitorCount);
       })
       .on('presence', { event: 'leave' }, () => {
-        const state = presenceChannel.presenceState();
-        updateViewerBadge(Object.keys(state).length);
+        const state = adminChannel.presenceState();
+        const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
+        updateViewerBadge(visitorCount);
       })
       .subscribe();
     // ── END LIVE VIEWER COUNT ──────────────────────────────────────────────
@@ -345,23 +349,32 @@
       const container = document.getElementById("ordersContainer");
       container.innerHTML = '<div class="status-msg">Fetching records...</div>';
       try {
-        const { data: orders, error } = await sb.from("orders").select("*").order("created_at", { ascending: false });
+        // Fetch oldest first so we can assign sequential order numbers correctly
+        const { data: orders, error } = await sb.from("orders").select("*").order("created_at", { ascending: true });
         if (error) throw error;
-        localOrdersCache = orders || [];
-        if (!orders || orders.length === 0) {
+
+        // Assign sequential order number based on position (oldest = #1)
+        const numberedOrders = (orders || []).map((order, index) => ({
+          ...order,
+          orderNumber: index + 1
+        }));
+
+        // Store cache then reverse so newest shows on top in the UI
+        localOrdersCache = numberedOrders;
+        const displayOrders = [...numberedOrders].reverse();
+
+        if (displayOrders.length === 0) {
           container.innerHTML = '<div class="status-msg">🍽️ No live receipts found!</div>';
           return;
         }
         container.innerHTML = "";
-        orders.forEach(order => {
-          const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
-          
+        displayOrders.forEach(order => {
           const card = document.createElement("div");
           card.className = "order-card";
           card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;">
               <div>
-                <span class="order-num">#${orderNum}</span>
+                <span class="order-num">Order ${order.orderNumber}</span>
                 <span style="font-weight:700; font-size:16px; margin-left:8px;">${order.customer_name || 'Anonymous'}</span>
                 <span style="font-size:14px; color:var(--brand2); margin-left:8px;">${order.customer_phone || ''}</span>
               </div>
@@ -395,7 +408,7 @@
       const order = localOrdersCache.find(o => o.id === orderId);
       if (!order) { alert("Order details missing!"); return; }
       
-      const orderNum = order.id ? order.id.toString().substring(0, 5).toUpperCase() : "NEW";
+      const orderNum = order.orderNumber || '—';
       const dateStr = order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : new Date().toLocaleString("en-PK");
       const sizeLabel = order.size ? '<br><small>(' + order.size.toUpperCase() + ')</small>' : '';
       
@@ -421,7 +434,7 @@
       htmlContent += '<div class="center">';
       htmlContent += '<h3 style="margin: 0 0 1px 0; font-size: 14px;">ONE BITE</h3>';
       htmlContent += '<p style="margin: 0 0 4px 0; font-size: 9px; letter-spacing: 0.5px;">Taste Worth Living For</p>';
-      htmlContent += '<p class="bold" style="font-size: 11px; margin: 3px 0;">ORDER: #' + orderNum + '</p>';
+      htmlContent += '<p class="bold" style="font-size: 11px; margin: 3px 0;">ORDER: ' + orderNum + '</p>';
       htmlContent += '<p style="font-size: 9px; margin: 0;">' + dateStr + '</p>';
       htmlContent += '</div>';
       
