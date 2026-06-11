@@ -148,9 +148,9 @@
         <p>Live Back-office Control Center</p>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="live-viewing">
+        <div class="live-viewing" id="liveViewingBadge">
           <div class="live-dot"></div>
-          <span>1 viewing</span>
+          <span id="liveViewingCount">— viewing</span>
         </div>
         <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
       </div>
@@ -284,6 +284,38 @@
     const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
     const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
+    // The main site joins 'onebite-live-occupancy' and calls .track() for each visitor.
+    // The admin ONLY listens (no .track()) so it doesn't inflate the count.
+    const viewerCountEl = document.getElementById('liveViewingCount');
+    const viewerBadgeEl = document.getElementById('liveViewingBadge');
+
+    function updateViewerBadge(count) {
+      viewerCountEl.textContent = count === 1 ? '1 viewing' : `${count} viewing`;
+      // Green when people online, dimmed when 0
+      viewerBadgeEl.style.opacity = count > 0 ? '1' : '0.5';
+    }
+
+    const presenceChannel = sb.channel('onebite-live-occupancy');
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        // Each key in state = one connected visitor tab
+        const count = Object.keys(state).length;
+        updateViewerBadge(count);
+      })
+      .on('presence', { event: 'join' }, () => {
+        const state = presenceChannel.presenceState();
+        updateViewerBadge(Object.keys(state).length);
+      })
+      .on('presence', { event: 'leave' }, () => {
+        const state = presenceChannel.presenceState();
+        updateViewerBadge(Object.keys(state).length);
+      })
+      .subscribe();
+    // ── END LIVE VIEWER COUNT ──────────────────────────────────────────────
 
     let localCategoriesCache = [];
     let localItemsCache = [];
