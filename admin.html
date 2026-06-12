@@ -213,9 +213,11 @@
   <div id="lockScreen">
     <div class="lock-box">
       <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
-      <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Enter administrative access key</p>
-      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === 'Enter') verifyGate()">
-      <button class="btn btn-brand" onclick="verifyGate()" style="width:100%;">Access Dashboard</button>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Sign in with your admin account</p>
+      <input type="email" id="adminEmail" placeholder="admin email" autocomplete="username" style="text-align:center; margin-bottom:10px; font-size:15px;">
+      <input type="password" id="adminPassword" placeholder="password" autocomplete="current-password" style="text-align:center; margin-bottom:15px; font-size:15px;" onkeydown="if(event.key === 'Enter') verifyGate()">
+      <button class="btn btn-brand" id="loginBtn" onclick="verifyGate()" style="width:100%;">Sign In</button>
+      <p id="loginError" style="color:#fc8181; font-size:13px; min-height:18px; margin:10px 0 0;"></p>
     </div>
   </div>
 
@@ -231,6 +233,7 @@
           <span id="liveViewingCount">— viewing</span>
         </div>
         <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
+        <button class="btn btn-danger" onclick="adminLogout()">Logout</button>
       </div>
     </header>
 
@@ -384,23 +387,66 @@
   <iframe id="receiptPrintFrame"></iframe>
 
   <script>
-    const MASTER_SECRET = "onebite2026"; 
+    // ── REAL AUTHENTICATION (Supabase Auth) ─────────────────────────────
+    // The admin signs in with an email + password created in the Supabase
+    // dashboard (Authentication > Users). No secrets live in this file.
+    // Combined with Row Level Security, only a signed-in admin can read
+    // orders or modify the menu — even if someone reads this source code.
 
-    function verifyGate() {
-      const input = document.getElementById("passKey").value;
-      if (input === MASTER_SECRET) {
-        document.getElementById("lockScreen").style.display = "none";
-        document.getElementById("dashboardContainer").style.display = "block";
-        loadAllData();
-      } else {
-        alert("Access Denied: Invalid Admin Key");
-        document.getElementById("passKey").value = "";
+    // Security: escape any text before putting it inside innerHTML.
+    const esc = (s) => String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+    function showDashboard() {
+      document.getElementById("lockScreen").style.display = "none";
+      document.getElementById("dashboardContainer").style.display = "block";
+      loadAllData();
+    }
+
+    function showLockScreen() {
+      document.getElementById("lockScreen").style.display = "flex";
+      document.getElementById("dashboardContainer").style.display = "none";
+    }
+
+    async function verifyGate() {
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
+      const errEl = document.getElementById("loginError");
+      const btn = document.getElementById("loginBtn");
+      errEl.textContent = "";
+      if (!email || !password) { errEl.textContent = "Enter email and password."; return; }
+
+      btn.disabled = true;
+      btn.textContent = "Signing in…";
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      btn.disabled = false;
+      btn.textContent = "Sign In";
+
+      if (error) {
+        errEl.textContent = "Access denied: " + error.message;
+        document.getElementById("adminPassword").value = "";
+        return;
       }
+      showDashboard();
+    }
+
+    async function adminLogout() {
+      await sb.auth.signOut();
+      showLockScreen();
     }
 
     const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
     const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // If the admin is already signed in (session saved by Supabase), skip the lock screen
+    sb.auth.getSession().then(({ data }) => {
+      if (data?.session) showDashboard();
+    });
 
     // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
     // Admin ONLY listens — no .track() so it never inflates the count.
@@ -493,22 +539,22 @@
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;">
               <div>
                 <span class="order-num">Order ${order.orderNumber}</span>
-                <span style="font-weight:700; font-size:16px; margin-left:8px;">${order.customer_name || 'Anonymous'}</span>
-                <span style="font-size:14px; color:var(--brand2); margin-left:8px;">${order.customer_phone || ''}</span>
+                <span style="font-weight:700; font-size:16px; margin-left:8px;">${esc(order.customer_name) || 'Anonymous'}</span>
+                <span style="font-size:14px; color:var(--brand2); margin-left:8px;">${esc(order.customer_phone)}</span>
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
-                <span class="chip">${order.payment_method || 'COD'}</span>
+                <span class="chip">${esc(order.payment_method) || 'COD'}</span>
                 <button class="btn btn-print" onclick="printReceipt('${order.id}')">🖨️ Print</button>
                 <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">Clear</button>
               </div>
             </div>
             <div style="font-size:15px; margin-bottom:12px;">
-              Item: <strong>${order.qty || 1}x ${order.item_name}</strong> 
-              ${order.size ? `<span style="color:var(--brand2)">(${order.size.toUpperCase()})</span>` : ''} 
-              <span style="color:var(--muted); font-size:13px;">[Category: ${order.category_name}]</span>
+              Item: <strong>${order.qty || 1}x ${esc(order.item_name)}</strong> 
+              ${order.size ? `<span style="color:var(--brand2)">(${esc(order.size.toUpperCase())})</span>` : ''} 
+              <span style="color:var(--muted); font-size:13px;">[Category: ${esc(order.category_name)}]</span>
             </div>
             <div style="background:var(--card2); padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;">
-              📍 <strong>Address:</strong> ${order.customer_address || 'None'}
+              📍 <strong>Address:</strong> ${esc(order.customer_address) || 'None'}
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:rgba(238, 242, 255, 0.5);">
               <span>Placed: ${order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : 'Just now'}</span>
@@ -528,7 +574,7 @@
       
       const orderNum = order.orderNumber || '—';
       const dateStr = order.created_at ? new Date(order.created_at).toLocaleString("en-PK") : new Date().toLocaleString("en-PK");
-      const sizeLabel = order.size ? '<br><small>(' + order.size.toUpperCase() + ')</small>' : '';
+      const sizeLabel = order.size ? '<br><small>(' + esc(order.size.toUpperCase()) + ')</small>' : '';
       
       // Select the hidden iframe element
       const iframe = document.getElementById('receiptPrintFrame');
@@ -559,9 +605,9 @@
       htmlContent += '<div class="divider"></div>';
       
       htmlContent += '<div class="info-block">';
-      htmlContent += '<p><span class="bold">Cust:</span> ' + (order.customer_name || "Walk-in") + '</p>';
-      htmlContent += '<p><span class="bold">Cell:</span> ' + (order.customer_phone || "—") + '</p>';
-      htmlContent += '<p><span class="bold">Addr:</span> ' + (order.customer_address || "Delivery") + '</p>';
+      htmlContent += '<p><span class="bold">Cust:</span> ' + esc(order.customer_name || "Walk-in") + '</p>';
+      htmlContent += '<p><span class="bold">Cell:</span> ' + esc(order.customer_phone || "—") + '</p>';
+      htmlContent += '<p><span class="bold">Addr:</span> ' + esc(order.customer_address || "Delivery") + '</p>';
       htmlContent += '</div>';
       
       htmlContent += '<div class="divider"></div>';
@@ -571,7 +617,7 @@
       htmlContent += '<th class="right" style="font-size: 10px; width: 20px; border-bottom: 1px solid #000;">Qty</th>';
       htmlContent += '<th class="right" style="font-size: 10px; width: 60px; border-bottom: 1px solid #000;">Total</th>';
       htmlContent += '</tr></thead><tbody><tr>';
-      htmlContent += '<td style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + order.item_name + sizeLabel + '</td>';
+      htmlContent += '<td style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + esc(order.item_name) + sizeLabel + '</td>';
       htmlContent += '<td class="right" style="font-size: 10px; padding: 3px 0; vertical-align: top;">' + (order.qty || 1) + '</td>';
       htmlContent += '<td class="right" style="font-size: 10px; padding: 3px 0; vertical-align: top;">Rs ' + Number(order.total).toLocaleString() + '</td>';
       htmlContent += '</tr></tbody></table>';
@@ -581,7 +627,7 @@
       htmlContent += '<div class="totals">TOTAL: Rs ' + Number(order.total).toLocaleString() + '</div>';
       
       htmlContent += '<div class="center" style="margin-top: 12px; padding-bottom: 10px;">';
-      htmlContent += '<p style="margin: 0; font-size: 9px;">Payment: ' + (order.payment_method || "COD") + '</p>';
+      htmlContent += '<p style="margin: 0; font-size: 9px;">Payment: ' + esc(order.payment_method || "COD") + '</p>';
       htmlContent += '<p style="margin: 2px 0 0 0; font-size: 9px; font-weight: bold;">*** Thank You! ***</p>';
       htmlContent += '</div>';
       
@@ -622,12 +668,12 @@
         dropdown.innerHTML = '<option value="">Select Category</option>';
         
         localCategoriesCache.forEach(cat => {
-          dropdown.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+          dropdown.innerHTML += `<option value="${esc(cat.id)}">${esc(cat.name)}</option>`;
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td style="font-size:20px;">${cat.icon || '📁'}</td>
-            <td><strong>${cat.name}</strong></td>
-            <td>${cat.short || ''}</td>
+            <td style="font-size:20px;">${esc(cat.icon) || '📁'}</td>
+            <td><strong>${esc(cat.name)}</strong></td>
+            <td>${esc(cat.short)}</td>
             <td style="text-align:right;">
               <button class="btn btn-muted" onclick="editCategory('${cat.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
               <button class="btn btn-danger" onclick="deleteCategory('${cat.id}')">Remove</button>
@@ -701,14 +747,14 @@
         localItemsCache.forEach(item => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td><strong>${item.name}</strong></td>
-            <td><span class="chip">${item.category_id}</span></td>
+            <td><strong>${esc(item.name)}</strong></td>
+            <td><span class="chip">${esc(item.category_id)}</span></td>
             <td style="color:var(--ok); font-weight:600;">${money(item.price)}</td>
             <td>${item.out_of_stock
               ? `<span style="background:rgba(229,62,62,0.15);color:#fc8181;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">🚫 Out of Stock</span>`
               : `<span style="background:rgba(61,220,151,0.12);color:#3ddc97;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">✅ In Stock</span>`
             }</td>
-            <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
+            <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(item.description) || '—'}</td>
             <td style="text-align:right;">
               <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
               <button class="btn btn-danger" onclick="deleteItem('${item.id}')">Remove</button>
@@ -840,7 +886,7 @@
               <span class="suggestion-num">Msg #${num}</span>
               <span class="suggestion-date">📅 ${date}</span>
             </div>
-            <div class="suggestion-message">${s.message || '—'}</div>
+            <div class="suggestion-message">${esc(s.message) || '—'}</div>
             <button class="suggestion-delete" onclick="deleteSuggestion('${s.id}')">🗑 Delete</button>
           `;
           container.appendChild(card);
