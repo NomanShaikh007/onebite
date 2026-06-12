@@ -274,6 +274,29 @@
             <label style="font-size:12px; color:var(--muted)">Description</label>
             <textarea id="itemDesc" rows="2" placeholder="Describe ingredients..."></textarea>
           </div>
+
+          <!-- Out of Stock toggle — only shown when editing an existing product -->
+          <div id="outOfStockRow" style="display:none; margin-bottom:16px; padding:14px 16px; background:rgba(229,62,62,0.07); border:1px solid rgba(229,62,62,0.25); border-radius:12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div>
+                <div style="font-size:13px; font-weight:700; color:#fc8181;">🚫 Out of Stock</div>
+                <div style="font-size:12px; color:var(--muted); margin-top:3px;">Customers will see this item as unavailable on the menu.</div>
+              </div>
+              <div id="stockToggle" onclick="toggleStock()" style="
+                width:48px; height:28px; border-radius:999px;
+                background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.15);
+                position:relative; cursor:pointer; transition:background 200ms, border-color 200ms; flex-shrink:0;">
+                <div id="stockThumb" style="
+                  position:absolute; top:3px; left:3px;
+                  width:18px; height:18px; border-radius:50%;
+                  background:#fff; transition:transform 200ms;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
+              </div>
+            </div>
+          </div>
+          <!-- hidden checkbox that actually stores the value -->
+          <input type="checkbox" id="itemOutOfStock" style="display:none;">
+
           <button type="submit" class="btn btn-ok" id="itemSubmitBtn">✨ Save Product</button>
         </form>
       </div>
@@ -287,6 +310,7 @@
                 <th>Product Name</th>
                 <th>Category</th>
                 <th>Price</th>
+                <th>Stock</th>
                 <th>Description</th>
                 <th style="text-align:right">Actions</th>
               </tr>
@@ -668,20 +692,23 @@
     /* ── ITEMS CONTROLS ── */
     async function fetchItems() {
       const tbody = document.getElementById("itemsTableBody");
-      tbody.innerHTML = '<tr><td colspan="5" class="status-msg">Loading inventory...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="status-msg">Loading inventory...</td></tr>';
       try {
         const { data: items, error } = await sb.from("items").select("*");
         if (error) throw error;
         localItemsCache = items || [];
         tbody.innerHTML = "";
-
         localItemsCache.forEach(item => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td><strong>${item.name}</strong></td>
             <td><span class="chip">${item.category_id}</span></td>
             <td style="color:var(--ok); font-weight:600;">${money(item.price)}</td>
-            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
+            <td>${item.out_of_stock
+              ? `<span style="background:rgba(229,62,62,0.15);color:#fc8181;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">🚫 Out of Stock</span>`
+              : `<span style="background:rgba(61,220,151,0.12);color:#3ddc97;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">✅ In Stock</span>`
+            }</td>
+            <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.description || '—'}</td>
             <td style="text-align:right;">
               <button class="btn btn-muted" onclick="editItem('${item.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
               <button class="btn btn-danger" onclick="deleteItem('${item.id}')">Remove</button>
@@ -689,7 +716,29 @@
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) { tbody.innerHTML = `<tr><td colspan="5">Error: ${err.message}</td></tr>`; }
+      } catch (err) { tbody.innerHTML = `<tr><td colspan="6" style="color:var(--brand);text-align:center;padding:20px;">Error: ${err.message}</td></tr>`; }
+    }
+
+    // Toggle stock visual + checkbox value
+    function toggleStock() {
+      const cb = document.getElementById("itemOutOfStock");
+      cb.checked = !cb.checked;
+      applyStockVisual(cb.checked);
+    }
+
+    function applyStockVisual(isOOS) {
+      const toggle = document.getElementById("stockToggle");
+      const thumb = document.getElementById("stockThumb");
+      if (!toggle || !thumb) return;
+      if (isOOS) {
+        toggle.style.background = "rgba(229,62,62,0.7)";
+        toggle.style.borderColor = "rgba(229,62,62,0.9)";
+        thumb.style.transform = "translateX(20px)";
+      } else {
+        toggle.style.background = "rgba(255,255,255,0.1)";
+        toggle.style.borderColor = "rgba(255,255,255,0.15)";
+        thumb.style.transform = "translateX(0px)";
+      }
     }
 
     async function saveItem(e) {
@@ -699,8 +748,9 @@
       const price = Number(document.getElementById("itemPrice").value);
       const description = document.getElementById("itemDesc").value.trim();
       const image = document.getElementById("itemImage").value.trim();
+      const out_of_stock = document.getElementById("itemOutOfStock").checked;
 
-      const payload = { name, category_id, price, description, image };
+      const payload = { name, category_id, price, description, image, out_of_stock };
 
       try {
         if (isEditingItem) {
@@ -712,7 +762,7 @@
           if (error) { alert("Write Operation Failed: " + error.message); return; }
         }
         resetItemForm();
-        fetchItems();
+        await fetchItems();
         alert("Product successfully saved!");
       } catch (err) { alert("System Error: " + err.message); }
     }
@@ -728,12 +778,22 @@
       document.getElementById("itemDesc").value = item.description || '';
       document.getElementById("itemImage").value = item.image || '';
       document.getElementById("itemSubmitBtn").innerText = "Apply Product Updates";
+      // Show toggle and set its state from DB
+      document.getElementById("outOfStockRow").style.display = "block";
+      const isOOS = item.out_of_stock === true;
+      document.getElementById("itemOutOfStock").checked = isOOS;
+      applyStockVisual(isOOS);
+      // Scroll to form
+      document.getElementById("outOfStockRow").scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
     function resetItemForm() {
       isEditingItem = false;
       document.getElementById("itemForm").reset();
+      document.getElementById("itemOutOfStock").checked = false;
       document.getElementById("itemSubmitBtn").innerText = "✨ Save Product";
+      document.getElementById("outOfStockRow").style.display = "none";
+      applyStockVisual(false);
     }
 
     async function deleteItem(id) {
