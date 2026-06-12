@@ -1851,6 +1851,15 @@
 
     const money = (n) => `Rs ${Number(n).toLocaleString("en-PK")}`;
 
+    // Security: escape any text before putting it inside innerHTML.
+    // This prevents XSS attacks (someone injecting <script> via text fields).
+    const esc = (s) => String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
     const img = (id) =>
       `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=640&h=400&q=80`;
 
@@ -1952,10 +1961,8 @@
     };
 
     const setHeader = ({ title, subtitle }) => {
-      const t = document.getElementById("headerTitle");
-      const s = document.getElementById("headerSubtitle");
-      if (t) t.textContent = title;
-      if (s) s.textContent = subtitle;
+      // Updates the browser tab title as the user navigates
+      document.title = title ? `${title} — One Bite` : "One Bite — Online Orders";
     };
 
     const routes = {
@@ -1978,10 +1985,10 @@
                 <div class="heroArt">${foodImg(c.image, c.name, c.icon)}</div>
                 <div class="cardBody">
                   <div class="cardTitleRow">
-                    <h3 class="cardTitle">${c.name}</h3>
+                    <h3 class="cardTitle">${esc(c.name)}</h3>
                     <span class="chip">${c.items.length} items</span>
                   </div>
-                  <p class="cardDesc">${c.short}</p>
+                  <p class="cardDesc">${esc(c.short)}</p>
                   <div class="cardActions">
                     <span class="btn btnPrimary">Open</span>
                     <span class="btn">Swipe →</span>
@@ -2006,14 +2013,14 @@
 
         const header = el(`
             <section>
-              <h2 class="screenTitle">${c.name} menu</h2>
+              <h2 class="screenTitle">${esc(c.name)} menu</h2>
               <p class="subtitle">${c.items.length} items available. Swipe left/right.</p>
             </section>
           `);
 
         const slider = el(`<section class="slider hSlider" aria-label="${c.name} items slider"></section>`);
         for (const item of c.items) {
-          const tag = (item.tags && item.tags[0]) ? `<span class="chip">${item.tags[0]}</span>` : `<span class="chip">Fresh</span>`;
+          const tag = (item.tags && item.tags[0]) ? `<span class="chip">${esc(item.tags[0])}</span>` : `<span class="chip">Fresh</span>`;
           const oosOverlay = item.out_of_stock ? `
             <div style="position:absolute;inset:0;background:rgba(11,12,16,0.72);display:flex;align-items:center;justify-content:center;z-index:3;border-radius:16px 16px 0 0;">
               <span style="background:#e53e3e;color:#fff;font-size:11px;font-weight:800;padding:5px 12px;border-radius:999px;letter-spacing:0.05em;">🚫 OUT OF STOCK</span>
@@ -2023,10 +2030,10 @@
                 <div class="heroArt" style="position:relative;">${foodImg(item.image, item.name, c.icon, c.image)}${oosOverlay}</div>
                 <div class="cardBody">
                   <div class="cardTitleRow">
-                    <h3 class="cardTitle">${item.name}</h3>
+                    <h3 class="cardTitle">${esc(item.name)}</h3>
                     ${tag}
                   </div>
-                  <p class="cardDesc">${item.desc}</p>
+                  <p class="cardDesc">${esc(item.desc)}</p>
                   <div class="priceRow">
                     <div class="price">${money(item.price)}</div>
                     <span class="btn btnPrimary">View</span>
@@ -2084,10 +2091,10 @@
               <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
               <div class="detailBody">
                 <div class="cardTitleRow">
-                  <h2 class="cardTitle" style="font-size:18px;margin:0">${item.name}</h2>
-                  <span class="chip">${c.name}</span>
+                  <h2 class="cardTitle" style="font-size:18px;margin:0">${esc(item.name)}</h2>
+                  <span class="chip">${esc(c.name)}</span>
                 </div>
-                <p class="cardDesc">${item.desc}</p>
+                <p class="cardDesc">${esc(item.desc)}</p>
                 ${sizeSelectorHTML}
                 <div class="priceRow">
                   <div>
@@ -2231,6 +2238,12 @@
       document.getElementById("orderTitle").textContent = `Order: ${item.name}${sizeLabel}`;
       document.getElementById("orderSubtitle").textContent = `${c.name} • ${money(currentOrderTarget.finalPrice)}`;
 
+      // Make sure qty selector is visible for single-item orders
+      const qtyLabel = orderForm.querySelector('select[name="qty"]')?.closest('label');
+      if (qtyLabel) qtyLabel.style.display = '';
+      const fp = document.getElementById("orderFinePrint");
+      if (fp) fp.textContent = "Orders are saved to the restaurant database in real time.";
+
       modal.classList.add("open");
       const nameInput = orderForm.querySelector('input[name="name"]');
       setTimeout(() => nameInput?.focus(), 0);
@@ -2252,7 +2265,7 @@
 
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      
+
       // 1. Strict verification guard check: Make sure all details are filled properly
       if (!orderForm.checkValidity()) {
         orderForm.reportValidity(); // Highlights the exact empty/half-filled field to user
@@ -2276,37 +2289,71 @@
       submitBtn.disabled = true;
       submitBtn.textContent = "Placing order…";
 
-      const { catId, itemId, size, finalPrice } = currentOrderTarget;
-      const c = findCategory(catId);
-      const item = findItem(catId, itemId);
-      if (!c || !item) { 
-        submitBtn.disabled = false; 
-        submitBtn.textContent = "Confirm Order"; 
-        return; 
-      }
-
       const fd = new FormData(orderForm);
-      const qty = Number(fd.get("qty") || 1);
-      const unitPrice = finalPrice ?? item.price;
-
-      const orderPayload = {
+      const payment = String(fd.get("payment") || "Cash on delivery");
+      const customer = {
         customer_name: nameVal,
         customer_phone: phoneVal,
         customer_address: addressVal,
-        payment_method: String(fd.get("payment") || "Cash on delivery"),
-        qty,
-        category_id: c.id,
-        category_name: c.name,
-        item_id: item.id,
-        item_name: item.name,
-        size: size || null,
-        unit_price: unitPrice,
-        total: unitPrice * qty,
+        payment_method: payment,
       };
+
+      const isCartOrder = currentOrderTarget.isCart === true;
+      let orderRows = [];
+      let toastLabel = "";
+      let toastTotal = 0;
+
+      if (isCartOrder) {
+        // ── CART CHECKOUT: one order row per cart line item ──
+        if (cart.length === 0) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Confirm Order";
+          closeOrderModal();
+          return;
+        }
+        orderRows = cart.map((line) => ({
+          ...customer,
+          qty: line.qty,
+          category_id: line.catId,
+          category_name: line.catName,
+          item_id: line.itemId,
+          item_name: line.name,
+          size: line.size || null,
+          unit_price: line.price,
+          total: line.price * line.qty,
+        }));
+        toastLabel = `Cart order (${cartCount()} items)`;
+        toastTotal = cartTotal();
+      } else {
+        // ── SINGLE ITEM ORDER ──
+        const { catId, itemId, size, finalPrice } = currentOrderTarget;
+        const c = findCategory(catId);
+        const item = findItem(catId, itemId);
+        if (!c || !item) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Confirm Order";
+          return;
+        }
+        const qty = Number(fd.get("qty") || 1);
+        const unitPrice = finalPrice ?? item.price;
+        orderRows = [{
+          ...customer,
+          qty,
+          category_id: c.id,
+          category_name: c.name,
+          item_id: item.id,
+          item_name: item.name,
+          size: size || null,
+          unit_price: unitPrice,
+          total: unitPrice * qty,
+        }];
+        toastLabel = item.name;
+        toastTotal = unitPrice * qty;
+      }
 
       let savedToCloud = false;
       try {
-        const { error } = await sb.from("orders").insert([orderPayload]);
+        const { error } = await sb.from("orders").insert(orderRows);
         if (error) throw error;
         savedToCloud = true;
       } catch (err) {
@@ -2314,7 +2361,7 @@
       }
 
       localStorage.setItem("ff_recent_order", JSON.stringify({
-        ...orderPayload,
+        rows: orderRows,
         id: crypto.randomUUID?.() || String(Date.now()),
         createdAt: new Date().toISOString(),
       }));
@@ -2325,15 +2372,14 @@
       closeOrderModal();
 
       if (savedToCloud) {
-        toast(`✅ Order placed: ${item ? item.name : 'Cart order'} • ${money(unitPrice * qty)}`);
+        toast(`✅ Order placed: ${toastLabel} • ${money(toastTotal)}`);
+        // Clear cart only after a successful cart checkout
+        if (isCartOrder) {
+          cart = [];
+          updateCartBadges();
+        }
       } else {
-        toast(`⚠️ Saved locally (offline): ${item ? item.name : 'Cart order'} • ${money(unitPrice * qty)}`);
-      }
-
-      // Clear cart after cart checkout
-      if (wasCartOrder) {
-        cart = [];
-        updateCartBadges();
+        toast(`⚠️ Order could not reach the restaurant. Please try again or call us.`, true);
       }
     });
 
@@ -2415,11 +2461,11 @@
         row.className = "cartItem";
         row.innerHTML = `
           <div class="cartItemThumb">
-            ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" referrerpolicy="no-referrer">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:22px;">🍽️</div>`}
+            ${item.image ? `<img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" referrerpolicy="no-referrer">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:22px;">🍽️</div>`}
           </div>
           <div class="cartItemInfo">
-            <div class="cartItemName">${item.name}</div>
-            <div class="cartItemSub">${item.catName} • ${money(item.price)} each</div>
+            <div class="cartItemName">${esc(item.name)}</div>
+            <div class="cartItemSub">${esc(item.catName)} • ${money(item.price)} each</div>
           </div>
           <div class="cartItemControls">
             <button class="cartQtyBtn" data-key="${item.id}" data-delta="-1">−</button>
@@ -2471,6 +2517,10 @@
       // Store cart checkout in currentOrderTarget as a special cart order
       currentOrderTarget = { isCart: true, total };
 
+      // Hide qty selector — quantities already come from the cart
+      const qtyLabel = orderForm.querySelector('select[name="qty"]')?.closest('label');
+      if (qtyLabel) qtyLabel.style.display = 'none';
+
       modal.classList.add("open");
       const nameInput = orderForm.querySelector('input[name="name"]');
       setTimeout(() => nameInput?.focus(), 0);
@@ -2514,7 +2564,7 @@
       dropdownEl.innerHTML = '';
 
       if (!categories.length && !items.length) {
-        dropdownEl.innerHTML = `<div class="searchNoResults">No results for "${query}"</div>`;
+        dropdownEl.innerHTML = `<div class="searchNoResults">No results for "${esc(query)}"</div>`;
         dropdownEl.classList.add('open');
         return;
       }
@@ -2530,7 +2580,7 @@
           a.innerHTML = `
             <span class="searchResultEmoji">${c.icon || '🍽️'}</span>
             <span class="searchResultMeta">
-              <span class="searchResultName">${c.name}</span>
+              <span class="searchResultName">${esc(c.name)}</span>
               <span class="searchResultSub">${c.items.length} items</span>
             </span>`;
           a.addEventListener('click', () => { onNavigate(); });
@@ -2556,8 +2606,8 @@
           a.innerHTML = `
             <span class="searchResultEmoji">${item._catIcon || '🍽️'}</span>
             <span class="searchResultMeta">
-              <span class="searchResultName">${item.name}</span>
-              <span class="searchResultSub">${item._catName} • ${money(item.price)}</span>
+              <span class="searchResultName">${esc(item.name)}</span>
+              <span class="searchResultSub">${esc(item._catName)} • ${money(item.price)}</span>
             </span>`;
           a.addEventListener('click', () => { onNavigate(); });
           group.appendChild(a);
@@ -2620,7 +2670,7 @@
       const { categories, items } = getSearchResults(q);
 
       if (!categories.length && !items.length) {
-        mobileResults.innerHTML = `<div class="drawerNoResults">No results for "<strong>${q}</strong>"</div>`;
+        mobileResults.innerHTML = `<div class="drawerNoResults">No results for "<strong>${esc(q)}</strong>"</div>`;
         return;
       }
 
@@ -2642,7 +2692,7 @@
           a.innerHTML = `
             <span class="drawerResultIcon">${c.icon || '🍽️'}</span>
             <span class="drawerResultText">
-              <span class="drawerResultName">${c.name}</span>
+              <span class="drawerResultName">${esc(c.name)}</span>
               <span class="drawerResultSub">${c.items.length} items available</span>
             </span>
             <span class="drawerResultArrow">›</span>`;
@@ -2669,8 +2719,8 @@
           a.innerHTML = `
             <span class="drawerResultIcon">${item._catIcon || '🍽️'}</span>
             <span class="drawerResultText">
-              <span class="drawerResultName">${item.name}</span>
-              <span class="drawerResultSub">${item._catName} · ${money(item.price)}</span>
+              <span class="drawerResultName">${esc(item.name)}</span>
+              <span class="drawerResultSub">${esc(item._catName)} · ${money(item.price)}</span>
             </span>
             <span class="drawerResultArrow">›</span>`;
           a.addEventListener('click', navigate);
