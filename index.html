@@ -1329,6 +1329,253 @@
       font-size: 11px;
       color: rgba(238,242,255,0.45);
     }
+
+    /* ── CART BUTTON (desktop nav) ── */
+    .cartBtn {
+      position: relative;
+    }
+
+    .cartBadge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      pointer-events: none;
+      border: 2px solid var(--bg);
+    }
+
+    .cartBadge.visible {
+      display: inline-flex;
+    }
+
+    /* ── CART MODAL ── */
+    .cartOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 14px;
+      z-index: 999;
+    }
+
+    .cartOverlay.open { display: flex; }
+
+    .cartModal {
+      width: min(560px, 100%);
+      max-height: 88vh;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(18, 20, 27, 0.98);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.65);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cartHeader {
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      flex-shrink: 0;
+    }
+
+    .cartHeader strong {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .cartHeader span {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    .cartItems {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cartItem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .cartItemThumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .cartItemThumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cartItemInfo {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cartItemName {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cartItemSub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .cartItemControls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .cartQtyBtn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 120ms;
+      line-height: 1;
+    }
+
+    .cartQtyBtn:hover { background: rgba(255,255,255,0.12); }
+
+    .cartQtyNum {
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .cartRemoveBtn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,77,77,0.25);
+      background: rgba(255,77,77,0.08);
+      color: var(--brand);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 120ms;
+      margin-left: 4px;
+    }
+
+    .cartRemoveBtn:hover { background: rgba(255,77,77,0.2); }
+
+    .cartEmpty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .cartEmpty div { font-size: 36px; margin-bottom: 10px; }
+
+    .cartFooter {
+      padding: 14px 16px;
+      border-top: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      flex-shrink: 0;
+    }
+
+    .cartTotalRow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .cartTotalLabel {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .cartTotalAmt {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    /* Add to Cart button on item page */
+    .btnCart {
+      border-color: rgba(61,220,151,0.35);
+      background: linear-gradient(180deg, rgba(61,220,151,0.18), rgba(61,220,151,0.08));
+      color: var(--ok);
+      font-weight: 700;
+    }
+
+    .btnCart:hover {
+      background: linear-gradient(180deg, rgba(61,220,151,0.28), rgba(61,220,151,0.14));
+      border-color: rgba(61,220,151,0.55);
+    }
+
+    /* Drawer cart link badge */
+    .drawerCartBadge {
+      margin-left: auto;
+      background: var(--brand);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      border-radius: 999px;
+      min-width: 18px;
+      height: 18px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+    }
+
+    .drawerCartBadge.visible { display: inline-flex; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1371,6 +1618,14 @@
             </svg>
             Home
           </a>
+          <button class="pill cartBtn" id="desktopCartBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Cart
+            <span class="cartBadge" id="desktopCartBadge"></span>
+          </button>
           <a class="pill" href="#/about">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="1.8" />
@@ -1419,6 +1674,14 @@
         </svg>
         About One Bite
       </a>
+      <button class="drawerLink" id="mobileCartBtn" type="button" onclick="openCart(); closeMobileMenu();" style="border:none;width:100%;text-align:left;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);background:rgba(255,255,255,0.03);">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:18px;height:18px;color:var(--brand2);">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        My Cart
+        <span class="drawerCartBadge" id="drawerCartBadge"></span>
+      </button>
 
       <!-- Suggestion Button -->
       <button class="suggestionBtn" type="button" onclick="toggleSuggestionPanel()">
@@ -1455,7 +1718,34 @@
     <main id="root"></main>
   </div>
 
-  <div class="modalOverlay" id="orderModal" role="dialog" aria-modal="true" aria-label="Order">
+  <!-- Cart Modal -->
+  <div class="cartOverlay" id="cartOverlay">
+    <div class="cartModal">
+      <div class="cartHeader">
+        <div>
+          <strong>🛒 My Cart</strong>
+          <span id="cartSubtitle">0 items</span>
+        </div>
+        <button class="iconBtn" id="closeCartBtn" type="button" aria-label="Close cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="cartItems" id="cartItems"></div>
+      <div class="cartFooter" id="cartFooter" style="display:none">
+        <div class="cartTotalRow">
+          <span class="cartTotalLabel">Total</span>
+          <span class="cartTotalAmt" id="cartTotal">Rs 0</span>
+        </div>
+        <button class="btn btnPrimary" id="cartCheckoutBtn" type="button" style="width:100%;padding:13px;">
+          Place Order for All Items
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <div class="modalOverlay" id="orderModal" role="dialog" aria-modal="true" aria-label="Order">
     <div class="modal">
       <div class="modalHeader">
         <div>
@@ -1799,7 +2089,10 @@
                     <div class="price" id="detailPrice">${money(getPrice())}</div>
                     <div class="small">Estimated prep time: 15–25 mins</div>
                   </div>
-                  <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>
+                  <div style="display:flex;gap:8px;">
+                    <button class="btn btnCart" id="addToCartBtn" type="button">+ Cart</button>
+                    <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1838,6 +2131,18 @@
           size: isPizza ? selectedSize : null,
           finalPrice: getPrice(),
         }));
+
+        const addCartBtn = document.getElementById("addToCartBtn");
+        addCartBtn.addEventListener("click", () => {
+          addToCart({
+            catId, itemId,
+            size: isPizza ? selectedSize : null,
+            finalPrice: getPrice(),
+            name: item.name + (isPizza ? ` (${selectedSize.charAt(0).toUpperCase()+selectedSize.slice(1)})` : ''),
+            image: item.image || '',
+            catName: c.name,
+          });
+        });
       },
 
       about() {
@@ -2006,13 +2311,162 @@
       closeOrderModal();
 
       if (savedToCloud) {
-        toast(`✅ Order placed: ${item.name} • ${money(unitPrice * qty)}`);
+        toast(`✅ Order placed: ${item ? item.name : 'Cart order'} • ${money(unitPrice * qty)}`);
       } else {
-        toast(`⚠️ Saved locally (offline): ${item.name} • ${money(unitPrice * qty)}`);
+        toast(`⚠️ Saved locally (offline): ${item ? item.name : 'Cart order'} • ${money(unitPrice * qty)}`);
+      }
+
+      // Clear cart after cart checkout
+      if (wasCartOrder) {
+        cart = [];
+        updateCartBadges();
       }
     });
 
-    window.addEventListener("hashchange", render);
+    // ── CART STATE ──────────────────────────────────────────────────────────
+    let cart = []; // [{id, catId, itemId, size, name, image, catName, price, qty}]
+
+    function cartKey(catId, itemId, size) {
+      return `${catId}::${itemId}::${size||''}`;
+    }
+
+    function addToCart({ catId, itemId, size, finalPrice, name, image, catName }) {
+      const key = cartKey(catId, itemId, size);
+      const existing = cart.find(i => i.id === key);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ id: key, catId, itemId, size, name, image, catName, price: finalPrice, qty: 1 });
+      }
+      updateCartBadges();
+      toast(`🛒 Added: ${name}`);
+    }
+
+    function removeFromCart(key) {
+      cart = cart.filter(i => i.id !== key);
+      updateCartBadges();
+      renderCartItems();
+    }
+
+    function changeQty(key, delta) {
+      const item = cart.find(i => i.id === key);
+      if (!item) return;
+      item.qty = Math.max(1, item.qty + delta);
+      updateCartBadges();
+      renderCartItems();
+    }
+
+    function cartTotal() {
+      return cart.reduce((s, i) => s + i.price * i.qty, 0);
+    }
+
+    function cartCount() {
+      return cart.reduce((s, i) => s + i.qty, 0);
+    }
+
+    function updateCartBadges() {
+      const count = cartCount();
+      const desktopBadge = document.getElementById("desktopCartBadge");
+      const drawerBadge  = document.getElementById("drawerCartBadge");
+      if (desktopBadge) {
+        desktopBadge.textContent = count;
+        desktopBadge.classList.toggle("visible", count > 0);
+      }
+      if (drawerBadge) {
+        drawerBadge.textContent = count;
+        drawerBadge.classList.toggle("visible", count > 0);
+      }
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById("cartItems");
+      const footer    = document.getElementById("cartFooter");
+      const subtitle  = document.getElementById("cartSubtitle");
+      const totalEl   = document.getElementById("cartTotal");
+      if (!container) return;
+
+      const count = cartCount();
+      subtitle.textContent = count === 0 ? "Your cart is empty" : `${count} item${count>1?'s':''}`;
+      totalEl.textContent = money(cartTotal());
+      footer.style.display = cart.length > 0 ? "block" : "none";
+
+      if (cart.length === 0) {
+        container.innerHTML = `<div class="cartEmpty"><div>🛒</div>Your cart is empty.<br><small style="margin-top:6px;display:block;color:var(--muted)">Browse items and tap <strong>+ Cart</strong> to add them here.</small></div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      cart.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "cartItem";
+        row.innerHTML = `
+          <div class="cartItemThumb">
+            ${item.image ? `<img src="${item.image}" alt="${item.name}" loading="lazy" referrerpolicy="no-referrer">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:22px;">🍽️</div>`}
+          </div>
+          <div class="cartItemInfo">
+            <div class="cartItemName">${item.name}</div>
+            <div class="cartItemSub">${item.catName} • ${money(item.price)} each</div>
+          </div>
+          <div class="cartItemControls">
+            <button class="cartQtyBtn" data-key="${item.id}" data-delta="-1">−</button>
+            <span class="cartQtyNum">${item.qty}</span>
+            <button class="cartQtyBtn" data-key="${item.id}" data-delta="1">+</button>
+            <button class="cartRemoveBtn" data-key="${item.id}" title="Remove">✕</button>
+          </div>`;
+        container.appendChild(row);
+      });
+
+      // Qty buttons
+      container.querySelectorAll(".cartQtyBtn").forEach(btn => {
+        btn.addEventListener("click", () => changeQty(btn.dataset.key, Number(btn.dataset.delta)));
+      });
+      container.querySelectorAll(".cartRemoveBtn").forEach(btn => {
+        btn.addEventListener("click", () => removeFromCart(btn.dataset.key));
+      });
+    }
+
+    function openCart() {
+      renderCartItems();
+      document.getElementById("cartOverlay").classList.add("open");
+    }
+
+    function closeCart() {
+      document.getElementById("cartOverlay").classList.remove("open");
+    }
+
+    // Cart button listeners
+    document.getElementById("desktopCartBtn").addEventListener("click", openCart);
+    document.getElementById("closeCartBtn").addEventListener("click", closeCart);
+    document.getElementById("cartOverlay").addEventListener("click", e => {
+      if (e.target === document.getElementById("cartOverlay")) closeCart();
+    });
+
+    // Checkout: open order modal for first cart item with multi-item summary
+    document.getElementById("cartCheckoutBtn").addEventListener("click", () => {
+      if (cart.length === 0) return;
+      closeCart();
+
+      // Build a readable summary of the cart
+      const summary = cart.map(i => `${i.qty}× ${i.name}`).join(", ");
+      const total = cartTotal();
+
+      // Pre-fill the order modal title with cart summary
+      document.getElementById("orderTitle").textContent = "Cart Order";
+      document.getElementById("orderSubtitle").textContent = `${cartCount()} items • ${money(total)}`;
+
+      // Store cart checkout in currentOrderTarget as a special cart order
+      currentOrderTarget = { isCart: true, total };
+
+      modal.classList.add("open");
+      const nameInput = orderForm.querySelector('input[name="name"]');
+      setTimeout(() => nameInput?.focus(), 0);
+
+      // Override the fine print
+      const fp = document.getElementById("orderFinePrint");
+      if (fp) fp.textContent = `Ordering: ${summary}`;
+    });
+
+        window.addEventListener("hashchange", render);
 
     // ─── SEARCH LOGIC ────────────────────────────────────────────────────────
 
