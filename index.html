@@ -1888,6 +1888,7 @@
               desc: i.description,
               tags: i.tags || [],
               image: i.image,
+              out_of_stock: i.out_of_stock === true,
             })),
         }));
 
@@ -2013,9 +2014,13 @@
         const slider = el(`<section class="slider hSlider" aria-label="${c.name} items slider"></section>`);
         for (const item of c.items) {
           const tag = (item.tags && item.tags[0]) ? `<span class="chip">${item.tags[0]}</span>` : `<span class="chip">Fresh</span>`;
+          const oosOverlay = item.out_of_stock ? `
+            <div style="position:absolute;inset:0;background:rgba(11,12,16,0.72);display:flex;align-items:center;justify-content:center;z-index:3;border-radius:16px 16px 0 0;">
+              <span style="background:#e53e3e;color:#fff;font-size:11px;font-weight:800;padding:5px 12px;border-radius:999px;letter-spacing:0.05em;">🚫 OUT OF STOCK</span>
+            </div>` : '';
           const card = el(`
-              <a class="card productCard" href="#/c/${encodeURIComponent(c.id)}/i/${encodeURIComponent(item.id)}">
-                <div class="heroArt">${foodImg(item.image, item.name, c.icon, c.image)}</div>
+              <a class="card productCard" href="#/c/${encodeURIComponent(c.id)}/i/${encodeURIComponent(item.id)}" style="position:relative;">
+                <div class="heroArt" style="position:relative;">${foodImg(item.image, item.name, c.icon, c.image)}${oosOverlay}</div>
                 <div class="cardBody">
                   <div class="cardTitleRow">
                     <h3 class="cardTitle">${item.name}</h3>
@@ -2090,8 +2095,17 @@
                     <div class="small">Estimated prep time: 15–25 mins</div>
                   </div>
                   <div style="display:flex;gap:8px;">
-                    <button class="btn btnCart" id="addToCartBtn" type="button">+ Cart</button>
-                    <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>
+                    ${item.out_of_stock
+                      ? `<div style="display:flex;align-items:center;gap:10px;background:rgba(229,62,62,0.1);border:1.5px solid rgba(229,62,62,0.3);padding:12px 18px;border-radius:14px;">
+                           <span style="font-size:20px;">🚫</span>
+                           <div>
+                             <div style="font-size:13px;font-weight:800;color:#fc8181;">Out of Stock</div>
+                             <div style="font-size:11px;color:rgba(238,242,255,0.45);margin-top:2px;">Not available right now</div>
+                           </div>
+                         </div>`
+                      : `<button class="btn btnCart" id="addToCartBtn" type="button">+ Cart</button>
+                         <button class="btn btnPrimary" id="orderNowBtn" type="button">Order Now</button>`
+                    }
                   </div>
                 </div>
               </div>
@@ -2126,14 +2140,14 @@
         }
 
         const orderBtn = document.getElementById("orderNowBtn");
-        orderBtn.addEventListener("click", () => openOrderModal({
+        if (orderBtn) orderBtn.addEventListener("click", () => openOrderModal({
           catId, itemId,
           size: isPizza ? selectedSize : null,
           finalPrice: getPrice(),
         }));
 
         const addCartBtn = document.getElementById("addToCartBtn");
-        addCartBtn.addEventListener("click", () => {
+        if (addCartBtn) addCartBtn.addEventListener("click", () => {
           addToCart({
             catId, itemId,
             size: isPizza ? selectedSize : null,
