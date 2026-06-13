@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Genius/Downloads/admin_6.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
-  <script src="./One Bite — Admin Dashboard_files/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
     :root {
@@ -249,7 +249,7 @@
     <div class="lock-box">
       <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
       <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Enter administrative access key</p>
-      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === &#39;Enter&#39;) verifyGate()">
+      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === 'Enter') verifyGate()">
       <button class="btn btn-brand" onclick="verifyGate()" style="width:100%;">Access Dashboard</button>
     </div>
   </div>
@@ -261,19 +261,19 @@
         <p>Live Back-office Control Center</p>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="live-viewing" id="liveViewingBadge" style="opacity: 1;">
+        <div class="live-viewing" id="liveViewingBadge">
           <div class="live-dot"></div>
-          <span id="liveViewingCount">1 viewing</span>
+          <span id="liveViewingCount">— viewing</span>
         </div>
         <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
       </div>
     </header>
 
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab(&#39;orders-tab&#39;, this)">📥 Live Orders</button>
-      <button class="tab-btn" onclick="switchTab(&#39;menu-tab&#39;, this)">🍔 Manage Menu Items</button>
-      <button class="tab-btn" onclick="switchTab(&#39;categories-tab&#39;, this)">📁 Manage Categories</button>
-      <button class="tab-btn" onclick="switchTab(&#39;suggestions-tab&#39;, this)">💬 Suggestions</button>
+      <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
+      <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
+      <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
+      <button class="tab-btn" onclick="switchTab('suggestions-tab', this)">💬 Suggestions</button>
     </div>
 
     <div id="orders-tab" class="view-panel active">
@@ -288,15 +288,15 @@
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Product Name</label>
-              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required="">
+              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Assignment</label>
-              <select id="itemCategory" required=""><option value="">Select Category</option></select>
+              <select id="itemCategory" required><option value="">Select Category</option></select>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Base Price (Rs)</label>
-              <input type="number" id="itemPrice" placeholder="1499" required="">
+              <input type="number" id="itemPrice" placeholder="1499" required>
             </div>
           </div>
           <div class="form-grid" style="grid-template-columns: 1fr;">
@@ -364,15 +364,15 @@
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Name</label>
-              <input type="text" id="catName" placeholder="e.g., Pizza" required="">
+              <input type="text" id="catName" placeholder="e.g., Pizza" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Short Tagline</label>
-              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required="">
+              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Icon Emoji</label>
-              <input type="text" id="catIcon" placeholder="🍕" required="">
+              <input type="text" id="catIcon" placeholder="🍕" required>
             </div>
           </div>
           <div style="margin-bottom: 14px;">
@@ -405,7 +405,7 @@
     <div id="suggestions-tab" class="view-panel">
       <div class="admin-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <h3 class="section-title" style="margin:0;">Customer Suggestions &amp; Complaints</h3>
+          <h3 class="section-title" style="margin:0;">Customer Suggestions & Complaints</h3>
           <button class="btn btn-muted" onclick="fetchSuggestions()" style="font-size:13px; padding:8px 14px;">🔄 Refresh</button>
         </div>
         <div id="suggestionsContainer">
@@ -416,7 +416,7 @@
 
   </div>
 
-  <iframe id="receiptPrintFrame" src="./One Bite — Admin Dashboard_files/saved_resource.html"></iframe>
+  <iframe id="receiptPrintFrame"></iframe>
 
   <!-- Real-time new order toast -->
   <div id="newOrderToast">🔔 New Order Received!</div>
@@ -439,7 +439,9 @@
 
     const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
     const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const _supabaseLib = window.supabase || (typeof supabase !== "undefined" ? supabase : null);
+    if (!_supabaseLib) { alert("Supabase failed to load. Please check your connection and refresh."); }
+    const sb = _supabaseLib.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
     // Admin ONLY listens — no .track() so it never inflates the count.
@@ -1008,6 +1010,5 @@
       }
     }
   </script>
-
-
-</body></html>
+</body>
+</html>
