@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/Genius/Downloads/admin_10.html -->
+<!-- saved from url=(0047)file:///C:/Users/Genius/Downloads/admin_12.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
-  <script src="./adminyy_files/supabase.js.download"></script>
+  <script src="./admin_files/supabase.js.download" onload="initSupabase()"></script>
 
   <style>
     :root {
@@ -309,9 +309,9 @@
         <p>Live Back-office Control Center</p>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="live-viewing" id="liveViewingBadge" style="opacity: 1;">
+        <div class="live-viewing" id="liveViewingBadge">
           <div class="live-dot"></div>
-          <span id="liveViewingCount">4 viewing</span>
+          <span id="liveViewingCount">— viewing</span>
         </div>
         <div id="adminSearchWrap">
           <span id="adminSearchIcon">🔍</span>
@@ -469,7 +469,7 @@
 
   </div>
 
-  <iframe id="receiptPrintFrame" src="./adminyy_files/saved_resource.html"></iframe>
+  <iframe id="receiptPrintFrame" src="./admin_files/saved_resource.html"></iframe>
 
   <!-- Real-time new order toast -->
   <div id="newOrderToast">🔔 New Order Received!</div>
@@ -483,7 +483,6 @@
         document.getElementById("lockScreen").style.display = "none";
         document.getElementById("dashboardContainer").style.display = "block";
         loadAllData();
-        startRealtimeOrders();
       } else {
         alert("Access Denied: Invalid Admin Key");
         document.getElementById("passKey").value = "";
@@ -491,45 +490,45 @@
     }
 
     const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6"; 
-    const _supabaseLib = window.supabase || (typeof supabase !== "undefined" ? supabase : null);
-    if (!_supabaseLib) { alert("Supabase failed to load. Please check your connection and refresh."); }
-    const sb = _supabaseLib.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
+    let sb = null;
 
-    // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
-    // Admin ONLY listens — no .track() so it never inflates the count.
-    // Main site visitors join 'onebite-live-occupancy' and call .track().
-    const viewerCountEl = document.getElementById('liveViewingCount');
-    const viewerBadgeEl = document.getElementById('liveViewingBadge');
-
-    function updateViewerBadge(count) {
-      viewerCountEl.textContent = count === 1 ? '1 viewing' : `${count} viewing`;
-      viewerBadgeEl.style.opacity = count > 0 ? '1' : '0.5';
+    function initSupabase() {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      startViewerCount();
+      startRealtimeOrders();
     }
 
-    // Use a unique key so admin itself is NOT tracked as a visitor
-    const adminChannel = sb.channel('onebite-live-occupancy', {
-      config: { presence: { key: 'admin-observer-' + Date.now() } }
-    });
+    // ── LIVE VIEWER COUNT ──────────────────────────────────────────────────
+    function updateViewerBadge(count) {
+      const viewerCountEl = document.getElementById('liveViewingCount');
+      const viewerBadgeEl = document.getElementById('liveViewingBadge');
+      if (viewerCountEl) viewerCountEl.textContent = count === 1 ? '1 viewing' : count + ' viewing';
+      if (viewerBadgeEl) viewerBadgeEl.style.opacity = count > 0 ? '1' : '0.5';
+    }
 
-    adminChannel
-      .on('presence', { event: 'sync' }, () => {
-        const state = adminChannel.presenceState();
-        // Filter out the admin observer key itself
-        const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
-        updateViewerBadge(visitorCount);
-      })
-      .on('presence', { event: 'join' }, () => {
-        const state = adminChannel.presenceState();
-        const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
-        updateViewerBadge(visitorCount);
-      })
-      .on('presence', { event: 'leave' }, () => {
-        const state = adminChannel.presenceState();
-        const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
-        updateViewerBadge(visitorCount);
-      })
-      .subscribe();
+    function startViewerCount() {
+      const adminChannel = sb.channel('onebite-live-occupancy', {
+        config: { presence: { key: 'admin-observer-' + Date.now() } }
+      });
+      adminChannel
+        .on('presence', { event: 'sync' }, () => {
+          const state = adminChannel.presenceState();
+          const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
+          updateViewerBadge(visitorCount);
+        })
+        .on('presence', { event: 'join' }, () => {
+          const state = adminChannel.presenceState();
+          const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
+          updateViewerBadge(visitorCount);
+        })
+        .on('presence', { event: 'leave' }, () => {
+          const state = adminChannel.presenceState();
+          const visitorCount = Object.keys(state).filter(k => !k.startsWith('admin-observer-')).length;
+          updateViewerBadge(visitorCount);
+        })
+        .subscribe();
+    }
     // ── END LIVE VIEWER COUNT ──────────────────────────────────────────────
 
     let localCategoriesCache = [];
@@ -1186,7 +1185,8 @@
     // Re-apply search when switching tabs
     /* ── END ADMIN SEARCH ── */
 
-  </script>
+  
+</script>
 
 
 </body></html>
