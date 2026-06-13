@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
+<!-- saved from url=(0047)file:///C:/Users/Genius/Downloads/admin_10.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="./adminyy_files/supabase.js.download"></script>
 
   <style>
     :root {
@@ -241,6 +241,54 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    /* ── SEARCH BAR ── */
+    #adminSearchWrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    #adminSearch {
+      background: var(--card2);
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 9px 16px 9px 38px;
+      width: 260px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #adminSearch:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(255,77,77,0.15);
+    }
+    #adminSearch::placeholder { color: rgba(238,242,255,0.35); }
+    #adminSearchIcon {
+      position: absolute;
+      left: 12px;
+      font-size: 15px;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    #searchClear {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0;
+      display: none;
+      line-height: 1;
+    }
+    .search-highlight {
+      background: rgba(255,77,77,0.25);
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+    .item-row-match td { background: rgba(61,220,151,0.07); }
   </style>
 </head>
 <body>
@@ -249,7 +297,7 @@
     <div class="lock-box">
       <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
       <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Enter administrative access key</p>
-      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === 'Enter') verifyGate()">
+      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === &#39;Enter&#39;) verifyGate()">
       <button class="btn btn-brand" onclick="verifyGate()" style="width:100%;">Access Dashboard</button>
     </div>
   </div>
@@ -261,19 +309,24 @@
         <p>Live Back-office Control Center</p>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="live-viewing" id="liveViewingBadge">
+        <div class="live-viewing" id="liveViewingBadge" style="opacity: 1;">
           <div class="live-dot"></div>
-          <span id="liveViewingCount">— viewing</span>
+          <span id="liveViewingCount">4 viewing</span>
+        </div>
+        <div id="adminSearchWrap">
+          <span id="adminSearchIcon">🔍</span>
+          <input id="adminSearch" type="text" placeholder="Search order # or product name…" oninput="handleAdminSearch(this.value)">
+          <button id="searchClear" onclick="clearAdminSearch()">✕</button>
         </div>
         <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
       </div>
     </header>
 
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
-      <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
-      <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
-      <button class="tab-btn" onclick="switchTab('suggestions-tab', this)">💬 Suggestions</button>
+      <button class="tab-btn active" onclick="switchTab(&#39;orders-tab&#39;, this)">📥 Live Orders</button>
+      <button class="tab-btn" onclick="switchTab(&#39;menu-tab&#39;, this)">🍔 Manage Menu Items</button>
+      <button class="tab-btn" onclick="switchTab(&#39;categories-tab&#39;, this)">📁 Manage Categories</button>
+      <button class="tab-btn" onclick="switchTab(&#39;suggestions-tab&#39;, this)">💬 Suggestions</button>
     </div>
 
     <div id="orders-tab" class="view-panel active">
@@ -288,15 +341,15 @@
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Product Name</label>
-              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required>
+              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required="">
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Assignment</label>
-              <select id="itemCategory" required><option value="">Select Category</option></select>
+              <select id="itemCategory" required=""><option value="">Select Category</option></select>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Base Price (Rs)</label>
-              <input type="number" id="itemPrice" placeholder="1499" required>
+              <input type="number" id="itemPrice" placeholder="1499" required="">
             </div>
           </div>
           <div class="form-grid" style="grid-template-columns: 1fr;">
@@ -364,15 +417,15 @@
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Name</label>
-              <input type="text" id="catName" placeholder="e.g., Pizza" required>
+              <input type="text" id="catName" placeholder="e.g., Pizza" required="">
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Short Tagline</label>
-              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required>
+              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required="">
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Icon Emoji</label>
-              <input type="text" id="catIcon" placeholder="🍕" required>
+              <input type="text" id="catIcon" placeholder="🍕" required="">
             </div>
           </div>
           <div style="margin-bottom: 14px;">
@@ -405,7 +458,7 @@
     <div id="suggestions-tab" class="view-panel">
       <div class="admin-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <h3 class="section-title" style="margin:0;">Customer Suggestions & Complaints</h3>
+          <h3 class="section-title" style="margin:0;">Customer Suggestions &amp; Complaints</h3>
           <button class="btn btn-muted" onclick="fetchSuggestions()" style="font-size:13px; padding:8px 14px;">🔄 Refresh</button>
         </div>
         <div id="suggestionsContainer">
@@ -416,7 +469,7 @@
 
   </div>
 
-  <iframe id="receiptPrintFrame"></iframe>
+  <iframe id="receiptPrintFrame" src="./adminyy_files/saved_resource.html"></iframe>
 
   <!-- Real-time new order toast -->
   <div id="newOrderToast">🔔 New Order Received!</div>
@@ -490,6 +543,9 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btnElement.classList.add('active');
+      // Re-apply search if something is typed
+      const q = document.getElementById('adminSearch') ? document.getElementById('adminSearch').value.trim() : '';
+      if (q) setTimeout(() => handleAdminSearch(q), 200);
     }
 
     function loadAllData() {
@@ -1009,6 +1065,128 @@
         alert("Delete failed: " + err.message);
       }
     }
+  
+    /* ── ADMIN SEARCH ── */
+    function handleAdminSearch(query) {
+      const q = query.trim().toLowerCase();
+      const clearBtn = document.getElementById('searchClear');
+      clearBtn.style.display = q ? 'block' : 'none';
+
+      if (!q) { clearAdminSearch(); return; }
+
+      // Detect active tab
+      const activeTab = document.querySelector('.view-panel.active');
+      if (!activeTab) return;
+
+      if (activeTab.id === 'orders-tab') {
+        searchOrders(q);
+      } else if (activeTab.id === 'menu-tab') {
+        searchProducts(q);
+      }
+    }
+
+    function clearAdminSearch() {
+      document.getElementById('adminSearch').value = '';
+      document.getElementById('searchClear').style.display = 'none';
+      // Restore all order cards
+      document.querySelectorAll('.order-card').forEach(c => {
+        c.style.display = '';
+        c.style.order = '';
+      });
+      // Restore all item rows
+      document.querySelectorAll('#itemsTableBody tr').forEach(r => {
+        r.style.display = '';
+        r.classList.remove('item-row-match');
+        r.style.order = '';
+      });
+    }
+
+    function searchOrders(q) {
+      // Parse order number — accepts "22", "order 22", "order#22"
+      const numMatch = q.replace(/^(order\s*#?)/i, '').trim();
+      const isNumSearch = /^\d+$/.test(numMatch);
+
+      const cards = document.querySelectorAll('.order-card');
+      cards.forEach(card => {
+        const orderNumEl = card.querySelector('.order-num');
+        const orderNum = orderNumEl ? orderNumEl.textContent.replace(/\D/g,'') : '';
+        const cardText = card.textContent.toLowerCase();
+
+        let match = false;
+        if (isNumSearch) {
+          match = orderNum === numMatch;
+        } else {
+          match = cardText.includes(q);
+        }
+
+        card.style.display = match ? '' : 'none';
+
+        // If exact order number match, scroll to it and flash
+        if (match && isNumSearch) {
+          setTimeout(() => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('new-order');
+            setTimeout(() => card.classList.remove('new-order'), 3000);
+          }, 100);
+        }
+      });
+
+      // Show "not found" if all hidden
+      const visible = [...cards].filter(c => c.style.display !== 'none');
+      const container = document.getElementById('ordersContainer');
+      let noResult = container.querySelector('#searchNoResult');
+      if (visible.length === 0) {
+        if (!noResult) {
+          noResult = document.createElement('div');
+          noResult.id = 'searchNoResult';
+          noResult.className = 'status-msg';
+          noResult.textContent = `No orders found for "${q}"`;
+          container.appendChild(noResult);
+        }
+      } else {
+        if (noResult) noResult.remove();
+      }
+    }
+
+    function searchProducts(q) {
+      const rows = document.querySelectorAll('#itemsTableBody tr');
+      let matchCount = 0;
+
+      rows.forEach(row => {
+        const nameCell = row.querySelector('td:first-child');
+        const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+        const match = name.includes(q);
+
+        row.style.display = match ? '' : 'none';
+        row.classList.toggle('item-row-match', match);
+        if (match) matchCount++;
+      });
+
+      // Move matched rows to top by re-ordering
+      const tbody = document.getElementById('itemsTableBody');
+      const allRows = [...tbody.querySelectorAll('tr')];
+      const matched = allRows.filter(r => r.classList.contains('item-row-match'));
+      const unmatched = allRows.filter(r => !r.classList.contains('item-row-match'));
+      matched.forEach(r => tbody.insertBefore(r, tbody.firstChild));
+
+      // Show "not found"
+      let noResult = tbody.parentElement.querySelector('#searchNoResult');
+      if (matchCount === 0) {
+        if (!noResult) {
+          noResult = document.createElement('tr');
+          noResult.id = 'searchNoResult';
+          noResult.innerHTML = `<td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">No products found for "${q}"</td>`;
+          tbody.appendChild(noResult);
+        }
+      } else {
+        if (noResult) noResult.remove();
+      }
+    }
+
+    // Re-apply search when switching tabs
+    /* ── END ADMIN SEARCH ── */
+
   </script>
-</body>
-</html>
+
+
+</body></html>
