@@ -2401,9 +2401,11 @@
       }
 
       let savedToCloud = false;
+      let insertedRows = [];
       try {
-        const { data: insertedRows, error } = await sb.from("orders").insert(orderRows).select();
+        const { data, error } = await sb.from("orders").insert(orderRows).select();
         if (error) throw error;
+        insertedRows = data || [];
         savedToCloud = true;
       } catch (err) {
         console.warn("Supabase order save failed:", err.message);
