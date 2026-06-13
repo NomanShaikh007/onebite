@@ -205,6 +205,36 @@
       border: 0;
     }
 
+
+    /* ── ORDER STATUS BUTTON ── */
+    .btn-status-pending {
+      background: rgba(255, 165, 0, 0.15);
+      color: orange;
+      border: 1.5px solid orange;
+      border-radius: 10px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-status-pending:hover {
+      background: rgba(255, 165, 0, 0.3);
+    }
+    .btn-status-done {
+      background: rgba(61, 220, 151, 0.15);
+      color: var(--ok);
+      border: 1.5px solid var(--ok);
+      border-radius: 10px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-status-done:hover {
+      background: rgba(61, 220, 151, 0.3);
+    }
     /* ── NEW ORDER REAL-TIME STYLES ── */
     @keyframes newOrderFlash {
       0%   { border-color: var(--ok); box-shadow: 0 0 0 0 rgba(61,220,151,0.7); }
@@ -603,6 +633,7 @@
           </div>
           <div style="display:flex; gap:8px; align-items:center;">
             <span class="chip">${order.payment_method || 'COD'}</span>
+            <button id="status-btn-${order.id}" class="btn-status-pending" onclick="toggleOrderStatus('${order.id}')">⏳ Pending</button>
             <button class="btn btn-print" onclick="printReceipt('${order.id}')">🖨️ Print</button>
             <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">Clear</button>
           </div>
@@ -691,6 +722,9 @@
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
                 <span class="chip">${order.payment_method || 'COD'}</span>
+                <button id="status-btn-${order.id}" class="${order.status === 'done' ? 'btn-status-done' : 'btn-status-pending'}" onclick="toggleOrderStatus('${order.id}')">
+                  ${order.status === 'done' ? '✅ Done' : '⏳ Pending'}
+                </button>
                 <button class="btn btn-print" onclick="printReceipt('${order.id}')">🖨️ Print</button>
                 <button class="btn btn-danger" onclick="deleteOrder('${order.id}')">Clear</button>
               </div>
@@ -790,6 +824,42 @@
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
       }, 250);
+    }
+
+    async function toggleOrderStatus(id) {
+      const btn = document.getElementById('status-btn-' + id);
+      const isDone = btn.classList.contains('btn-status-done');
+      const newStatus = isDone ? 'pending' : 'done';
+
+      // Update UI instantly
+      btn.className = newStatus === 'done' ? 'btn-status-done' : 'btn-status-pending';
+      btn.innerHTML = newStatus === 'done' ? '✅ Done' : '⏳ Pending';
+
+      // Save to Supabase
+      try {
+        const { error } = await sb.from('orders').update({ status: newStatus }).eq('id', id);
+        if (error) throw error;
+
+        // Send push notification to customer when marked as done
+        if (newStatus === 'done') {
+          const SUPABASE_URL = "https://vzdpoezelgjjtklcpdad.supabase.co";
+          const SUPABASE_KEY = "sb_publishable_XxxlAsDIO7-EJb95VeXxNw_Baa2QWq6";
+          fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_KEY}`
+            },
+            body: JSON.stringify({ order_id: id })
+          }).catch(e => console.warn('Push send failed:', e));
+        }
+
+      } catch (err) {
+        // Revert UI if save failed
+        btn.className = isDone ? 'btn-status-done' : 'btn-status-pending';
+        btn.innerHTML = isDone ? '✅ Done' : '⏳ Pending';
+        alert('Could not update status: ' + err.message);
+      }
     }
 
     async function deleteOrder(id) {
