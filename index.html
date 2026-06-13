@@ -2402,7 +2402,7 @@
 
       let savedToCloud = false;
       try {
-        const { error } = await sb.from("orders").insert(orderRows);
+        const { data: insertedRows, error } = await sb.from("orders").insert(orderRows).select();
         if (error) throw error;
         savedToCloud = true;
       } catch (err) {
@@ -2421,6 +2421,10 @@
       closeOrderModal();
 
       if (savedToCloud) {
+        // Register push notification for this order
+        if (insertedRows && insertedRows.length > 0) {
+          insertedRows.forEach(row => registerPush(row.id));
+        }
         toast(`✅ Order placed: ${toastLabel} • ${money(toastTotal)}`);
         // Clear cart only after a successful cart checkout
         if (isCartOrder) {
@@ -2861,6 +2865,43 @@
       await loadMenuFromSupabase();
       render();
     })();
+  </script>
+
+  <!-- One Bite Push Notifications -->
+  <script>
+    const VAPID_PUBLIC_KEY = 'BK1GHA1HOds1SpUiy1d83heSnKZ7Q2gK35w-OaP6X8ZkabA9-iZYUT1D-EVu_SLjO5ul7W9ol5NNrrfaQke_kXg';
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(base64);
+      return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+    }
+
+    async function registerPush(orderId) {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+
+        const existing = await reg.pushManager.getSubscription();
+        const sub = existing || await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+
+        const subJson = JSON.stringify(sub.toJSON());
+        await sb.from('push_subscriptions').upsert({
+          order_id: orderId,
+          subscription: subJson,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'order_id' });
+
+      } catch(e) { console.warn('Push registration failed:', e); }
+    }
   </script>
 </body>
 
