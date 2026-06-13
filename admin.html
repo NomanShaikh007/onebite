@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/Genius/Downloads/admin_12.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>One Bite — Admin Dashboard</title>
   
-  <script src="./admin_files/supabase.js.download" onload="initSupabase()"></script>
-
   <style>
     :root {
       --bg: #0b0c10;
@@ -297,7 +295,7 @@
     <div class="lock-box">
       <h2 style="margin-top:0; color:var(--brand);">One Bite Admin</h2>
       <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Enter administrative access key</p>
-      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === &#39;Enter&#39;) verifyGate()">
+      <input type="password" id="passKey" placeholder="••••••••" style="text-align:center; margin-bottom:15px; font-size:16px;" onkeydown="if(event.key === 'Enter') verifyGate()">
       <button class="btn btn-brand" onclick="verifyGate()" style="width:100%;">Access Dashboard</button>
     </div>
   </div>
@@ -315,7 +313,7 @@
         </div>
         <div id="adminSearchWrap">
           <span id="adminSearchIcon">🔍</span>
-          <input id="adminSearch" type="text" placeholder="Search order # or product name…" oninput="handleAdminSearch(this.value)">
+          <input id="adminSearch" type="text" placeholder="Search order # or product name…" oninput="handleAdminSearch(this.value)" />
           <button id="searchClear" onclick="clearAdminSearch()">✕</button>
         </div>
         <button class="btn btn-muted" onclick="loadAllData()">🔄 Refresh</button>
@@ -323,10 +321,10 @@
     </header>
 
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab(&#39;orders-tab&#39;, this)">📥 Live Orders</button>
-      <button class="tab-btn" onclick="switchTab(&#39;menu-tab&#39;, this)">🍔 Manage Menu Items</button>
-      <button class="tab-btn" onclick="switchTab(&#39;categories-tab&#39;, this)">📁 Manage Categories</button>
-      <button class="tab-btn" onclick="switchTab(&#39;suggestions-tab&#39;, this)">💬 Suggestions</button>
+      <button class="tab-btn active" onclick="switchTab('orders-tab', this)">📥 Live Orders</button>
+      <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍔 Manage Menu Items</button>
+      <button class="tab-btn" onclick="switchTab('categories-tab', this)">📁 Manage Categories</button>
+      <button class="tab-btn" onclick="switchTab('suggestions-tab', this)">💬 Suggestions</button>
     </div>
 
     <div id="orders-tab" class="view-panel active">
@@ -341,15 +339,15 @@
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Product Name</label>
-              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required="">
+              <input type="text" id="itemName" placeholder="e.g., Pepperoni Pizza" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Assignment</label>
-              <select id="itemCategory" required=""><option value="">Select Category</option></select>
+              <select id="itemCategory" required><option value="">Select Category</option></select>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Base Price (Rs)</label>
-              <input type="number" id="itemPrice" placeholder="1499" required="">
+              <input type="number" id="itemPrice" placeholder="1499" required>
             </div>
           </div>
           <div class="form-grid" style="grid-template-columns: 1fr;">
@@ -417,15 +415,15 @@
           <div class="form-grid">
             <div>
               <label style="font-size:12px; color:var(--muted)">Category Name</label>
-              <input type="text" id="catName" placeholder="e.g., Pizza" required="">
+              <input type="text" id="catName" placeholder="e.g., Pizza" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Short Tagline</label>
-              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required="">
+              <input type="text" id="catShort" placeholder="Cheesy, hot, fresh" required>
             </div>
             <div>
               <label style="font-size:12px; color:var(--muted)">Icon Emoji</label>
-              <input type="text" id="catIcon" placeholder="🍕" required="">
+              <input type="text" id="catIcon" placeholder="🍕" required>
             </div>
           </div>
           <div style="margin-bottom: 14px;">
@@ -458,7 +456,7 @@
     <div id="suggestions-tab" class="view-panel">
       <div class="admin-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <h3 class="section-title" style="margin:0;">Customer Suggestions &amp; Complaints</h3>
+          <h3 class="section-title" style="margin:0;">Customer Suggestions & Complaints</h3>
           <button class="btn btn-muted" onclick="fetchSuggestions()" style="font-size:13px; padding:8px 14px;">🔄 Refresh</button>
         </div>
         <div id="suggestionsContainer">
@@ -469,11 +467,12 @@
 
   </div>
 
-  <iframe id="receiptPrintFrame" src="./admin_files/saved_resource.html"></iframe>
+  <iframe id="receiptPrintFrame"></iframe>
 
   <!-- Real-time new order toast -->
   <div id="newOrderToast">🔔 New Order Received!</div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
     const MASTER_SECRET = "onebite2026"; 
 
@@ -1185,8 +1184,9 @@
     // Re-apply search when switching tabs
     /* ── END ADMIN SEARCH ── */
 
-  
+    // Init Supabase after all functions are defined
+    initSupabase();
+
 </script>
-
-
-</body></html>
+</body>
+</html>
